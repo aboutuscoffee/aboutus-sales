@@ -53,12 +53,12 @@ export default function BudgetSettings() {
         <div>
           <label className="text-xs text-gray-500 block mb-0.5">年</label>
           <input type="number" value={year} onChange={e=>setYear(Number(e.target.value))}
-            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
         </div>
         <div>
           <label className="text-xs text-gray-500 block mb-0.5">月</label>
           <select value={month} onChange={e=>setMonth(Number(e.target.value))}
-            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]">
             {Array.from({length:12},(_,i) => <option key={i+1} value={i+1}>{i+1}月</option>)}
           </select>
         </div>
@@ -73,10 +73,10 @@ export default function BudgetSettings() {
         <div key={k}>
           <label className="text-xs text-gray-500 block mb-0.5">{l}</label>
           <input type="number" value={form[k]} onChange={e=>set(k,e.target.value)}
-            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+            className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
         </div>
       ))}
-      <button onClick={save} className="w-full bg-blue-600 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-blue-700">
+      <button onClick={save} className="w-full bg-[#1e3a5f] text-white rounded-xl py-2.5 text-sm font-medium hover:bg-[#162d4a]">
         {saved ? "✓ 保存しました" : "保存する"}
       </button>
     </div>

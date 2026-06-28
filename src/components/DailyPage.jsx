@@ -149,7 +149,7 @@ export default function DailyPage({ navigate, searchParams }) {
                 <div key={k}>
                   <label className="text-xs text-gray-500 block mb-0.5">{l}</label>
                   <input type="number" value={form[k]} onChange={e=>set(k,e.target.value)}
-                    className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+                    className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
                 </div>
               ))}
             </div>
@@ -173,7 +173,7 @@ export default function DailyPage({ navigate, searchParams }) {
                           <span className={`inline-block transition-transform text-gray-400 ${isOpen ? "rotate-90" : ""}`}>▶</span>
                           {name}
                         </span>
-                        <span className={`text-xs font-semibold ${groupAmount > 0 ? "text-blue-600" : "text-gray-400"}`}>
+                        <span className={`text-xs font-semibold ${groupAmount > 0 ? "text-[#1e3a5f]" : "text-gray-400"}`}>
                           {groupQty}個 / ¥{fmt(groupAmount)}
                         </span>
                       </button>
@@ -184,7 +184,7 @@ export default function DailyPage({ navigate, searchParams }) {
                               <span className="flex-1 text-xs text-gray-600">{p.grams}g <span className="text-gray-400">(¥{fmt(p.price)})</span></span>
                               <input type="number" min="0" value={beanQty[p.id] || ""} placeholder="0"
                                 onChange={e => setBeanQty(b => ({...b, [p.id]: e.target.value}))}
-                                className="w-16 border rounded px-1.5 py-1 text-xs text-right focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+                                className="w-16 border rounded px-1.5 py-1 text-xs text-right focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
                             </div>
                           ))}
                         </div>
@@ -215,14 +215,14 @@ export default function DailyPage({ navigate, searchParams }) {
               <div key={k}>
                 <label className="text-xs text-gray-500 block mb-0.5">{l}</label>
                 <textarea rows={rows} value={form[k]} onChange={e=>set(k,e.target.value)}
-                  className="w-full border rounded px-2 py-1.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+                  className="w-full border rounded px-2 py-1.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
               </div>
             ))}
           </div>
 
           <div className="flex gap-2">
             <button onClick={() => navigate("")} className="flex-1 border rounded-xl py-2.5 text-sm hover:bg-gray-50">← 戻る</button>
-            <button onClick={save} className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-blue-700">
+            <button onClick={save} className="flex-1 bg-[#1e3a5f] text-white rounded-xl py-2.5 text-sm font-medium hover:bg-[#162d4a]">
               {saved ? "✓ 保存しました" : "保存する"}
             </button>
           </div>

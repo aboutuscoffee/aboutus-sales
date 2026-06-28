@@ -62,7 +62,7 @@ export default function DailyViewPage({ navigate, searchParams }) {
           この日の日報はまだ入力されていません。
           <div className="mt-3">
             <button onClick={() => navigate(`daily?date=${date}`)}
-              className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm hover:bg-blue-700">
+              className="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm hover:bg-[#162d4a]">
               日報を入力する
             </button>
           </div>
@@ -72,7 +72,7 @@ export default function DailyViewPage({ navigate, searchParams }) {
           <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="bg-white rounded-xl border p-2 text-center">
               <p className="text-gray-400 text-[10px]">売上</p>
-              <p className="font-bold text-sm text-blue-700">{rep.sales ? `¥${fmt(rep.sales)}` : "—"}</p>
+              <p className="font-bold text-sm text-[#1e3a5f]">{rep.sales ? `¥${fmt(rep.sales)}` : "—"}</p>
             </div>
             <div className="bg-white rounded-xl border p-2 text-center">
               <p className="text-gray-400 text-[10px]">豆販売</p>
@@ -114,7 +114,7 @@ export default function DailyViewPage({ navigate, searchParams }) {
           <div className="flex gap-2">
             <button onClick={() => navigate("")} className="flex-1 border rounded-xl py-2.5 text-sm hover:bg-gray-50">← ダッシュボードへ戻る</button>
             <button onClick={() => navigate(`daily?date=${date}`)}
-              className="flex-1 bg-blue-600 text-white rounded-xl py-2.5 text-sm font-medium hover:bg-blue-700">
+              className="flex-1 bg-[#1e3a5f] text-white rounded-xl py-2.5 text-sm font-medium hover:bg-[#162d4a]">
               編集する
             </button>
           </div>

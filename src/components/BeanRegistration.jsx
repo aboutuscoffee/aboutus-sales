@@ -79,12 +79,12 @@ export default function BeanRegistration() {
       )}
       <div className="flex flex-wrap gap-2 mb-4">
         <input placeholder="種類名（例: エチオピア）" value={name} onChange={e=>setName(e.target.value)}
-          className="flex-1 min-w-[120px] border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+          className="flex-1 min-w-[120px] border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
         <input type="number" placeholder="g数" value={grams} onChange={e=>setGrams(e.target.value)}
-          className="w-20 border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"/>
+          className="w-20 border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
         <input type="number" placeholder="単価(¥)" value={price} onChange={e=>setPrice(e.target.value)}
-          className="w-28 border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"/>
-        <button onClick={addProduct} className="bg-blue-600 text-white rounded px-3 py-1.5 text-sm hover:bg-blue-700 whitespace-nowrap">追加</button>
+          className="w-28 border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
+        <button onClick={addProduct} className="bg-[#1e3a5f] text-white rounded px-3 py-1.5 text-sm hover:bg-[#162d4a] whitespace-nowrap">追加</button>
       </div>
       {saved && <p className="text-green-600 text-xs mb-2">✓ 登録しました</p>}
       {loading ? (

@@ -36,7 +36,7 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
         const dowStr = DAYS_JA[row.dow];
         return (
           <div key={row.dateStr}
-            className={`bg-white rounded-xl border p-3 ${row.isFuture ? "opacity-30" : ""} ${isToday ? "border-blue-300 bg-blue-50" : ""}`}>
+            className={`bg-white rounded-xl border p-3 ${row.isFuture ? "opacity-30" : ""} ${isToday ? "border-[#1e3a5f] bg-blue-50" : ""}`}>
             <div className="flex items-start justify-between gap-2">
               {/* 左：日付・区分 */}
               <div className="shrink-0 w-16">
@@ -55,7 +55,7 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
                     {row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}
                   </span>
                   {row.dayRate != null && (
-                    <span className={`text-xs font-medium ${row.dayRate >= 100 ? "text-blue-500" : "text-red-400"}`}>
+                    <span className={`text-xs font-medium ${row.dayRate >= 100 ? "text-[#2563aa]" : "text-red-400"}`}>
                       {row.dayRate}%
                     </span>
                   )}
@@ -79,7 +79,7 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
               {/* 右：入力ボタン */}
               <div className="shrink-0">
                 <button onClick={() => navigate(`daily?date=${row.dateStr}`)}
-                  className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 whitespace-nowrap">
+                  className="px-2.5 py-1 bg-[#1e3a5f] text-white rounded-lg text-xs hover:bg-[#162d4a] whitespace-nowrap">
                   {row.rep.sales ? "編集" : "入力"}
                 </button>
               </div>
@@ -211,11 +211,11 @@ export default function Dashboard({ navigate }) {
         <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-100">›</button>
         <div className="ml-auto flex rounded-lg border overflow-hidden text-xs font-medium">
           <button onClick={() => switchView("table")}
-            className={`px-3 py-1.5 transition ${view === "table" ? "bg-blue-700 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+            className={`px-3 py-1.5 transition ${view === "table" ? "bg-[#1e3a5f] text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
             テーブル
           </button>
           <button onClick={() => switchView("card")}
-            className={`px-3 py-1.5 border-l transition ${view === "card" ? "bg-blue-700 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+            className={`px-3 py-1.5 border-l transition ${view === "card" ? "bg-[#1e3a5f] text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
             カード
           </button>
         </div>
@@ -245,7 +245,7 @@ export default function Dashboard({ navigate }) {
           <div className="sm:w-44 shrink-0 flex sm:flex-col gap-3 sm:border-l sm:pl-4 sm:justify-center">
             <div>
               <p className="text-[11px] text-gray-400">目標売上</p>
-              <p className="text-lg font-bold text-blue-700">¥{fmt(config?.target) || "—"}</p>
+              <p className="text-lg font-bold text-[#1e3a5f]">¥{fmt(config?.target) || "—"}</p>
             </div>
             <div>
               <p className="text-[11px] text-gray-400">平日予算</p>
@@ -294,7 +294,7 @@ export default function Dashboard({ navigate }) {
                     <td className="px-1.5 py-1 text-right">
                       <div>{row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}</div>
                       {row.dayRate != null && (
-                        <div className={`text-[10px] ${row.dayRate >= 100 ? "text-blue-500" : "text-red-400"}`}>{row.dayRate}%</div>
+                        <div className={`text-[10px] ${row.dayRate >= 100 ? "text-[#2563aa]" : "text-red-400"}`}>{row.dayRate}%</div>
                       )}
                     </td>
                     <td className={`px-1.5 py-1 text-right bg-lime-50 ${divider(3)}`}>
@@ -302,7 +302,7 @@ export default function Dashboard({ navigate }) {
                     </td>
                     <td className="px-1.5 py-1 text-center">
                       {row.cumRate != null && (
-                        <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-blue-600" : "text-red-500"}`}>{row.cumRate}%</span>
+                        <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-[#1e3a5f]" : "text-red-500"}`}>{row.cumRate}%</span>
                       )}
                     </td>
                     <td className={`px-1.5 py-1 text-right bg-blue-50 ${divider(5)}`}>
@@ -310,7 +310,7 @@ export default function Dashboard({ navigate }) {
                     </td>
                     <td className="px-1.5 py-1 text-right font-medium">
                       {row.diff != null && (
-                        <span className={row.diff >= 0 ? "text-blue-600" : "text-red-500"}>
+                        <span className={row.diff >= 0 ? "text-[#1e3a5f]" : "text-red-500"}>
                           {row.diff >= 0 ? "+" : ""}¥{fmt(row.diff)}
                         </span>
                       )}
@@ -330,7 +330,7 @@ export default function Dashboard({ navigate }) {
                     </td>
                     <td className="px-1.5 py-1 text-center">
                       <button onClick={() => navigate(`daily?date=${row.dateStr}`)}
-                        className="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] hover:bg-blue-700 whitespace-nowrap">
+                        className="px-2 py-0.5 bg-[#1e3a5f] text-white rounded text-[10px] hover:bg-[#162d4a] whitespace-nowrap">
                         {row.rep.sales ? "編集" : "入力"}
                       </button>
                     </td>
@@ -347,9 +347,9 @@ export default function Dashboard({ navigate }) {
       {/* KPI cards */}
       <div className="grid grid-cols-3 gap-2 mb-2">
         {[
-          {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-blue-700"},
+          {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-[#1e3a5f]"},
           {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                        c:"text-gray-700"},
-          {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                c:kpi.rate>=100?"text-blue-600":"text-red-500"},
+          {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                c:kpi.rate>=100?"text-[#1e3a5f]":"text-red-500"},
           {l:"豆販売(個)",  v:fmt(kpi.totalBean)||"—",                           c:"text-gray-700"},
           {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—", c:"text-gray-700"},
           {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                          c:"text-gray-700"},

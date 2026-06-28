@@ -22,7 +22,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans">
-      <header className="bg-blue-700 text-white px-4 py-2 flex items-center justify-between shrink-0">
+      <header className="bg-[#1e3a5f] text-white px-4 py-2 flex items-center justify-between shrink-0">
         <span className="font-bold text-sm">☕ 売上管理</span>
         <div className="flex gap-3">
           {navItems.map(({p,l,t}) => (
