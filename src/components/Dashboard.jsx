@@ -28,6 +28,69 @@ const STAFF_KEYS = [
   {k:"check_miyata",l:"宮田"},{k:"check_matsuda",l:"松田"},
 ];
 
+function CardView({ rows, todayStr, navigate, toggleCheck }) {
+  return (
+    <div className="space-y-2 mb-3">
+      {rows.map(row => {
+        const isToday = row.dateStr === todayStr;
+        const dowStr = DAYS_JA[row.dow];
+        return (
+          <div key={row.dateStr}
+            className={`bg-white rounded-xl border p-3 ${row.isFuture ? "opacity-30" : ""} ${isToday ? "border-blue-300 bg-blue-50" : ""}`}>
+            <div className="flex items-start justify-between gap-2">
+              {/* 左：日付・区分 */}
+              <div className="shrink-0 w-16">
+                <p className={`text-sm font-bold ${row.isHol ? "text-red-500" : "text-gray-800"}`}>
+                  {String(row.d).padStart(2,"0")}日/{dowStr}
+                </p>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${row.isHol ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
+                  {row.isHol ? "休日" : "平日"}
+                </span>
+              </div>
+
+              {/* 中：売上・累計 */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-base font-bold text-gray-900">
+                    {row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}
+                  </span>
+                  {row.dayRate != null && (
+                    <span className={`text-xs font-medium ${row.dayRate >= 100 ? "text-blue-500" : "text-red-400"}`}>
+                      {row.dayRate}%
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-3 mt-0.5 text-[11px] text-gray-500 flex-wrap">
+                  {row.cumSales != null && <span>累計 ¥{fmt(row.cumSales)}</span>}
+                  {row.rep.bean_qty > 0 && <span>豆 {row.rep.bean_qty}個</span>}
+                  {row.rep.drink_count > 0 && <span>{row.rep.drink_count}杯</span>}
+                </div>
+                {/* スタッフ確認 */}
+                <div className="flex gap-1 mt-1.5">
+                  {STAFF_KEYS.map(({k,l}) => (
+                    <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 右：入力ボタン */}
+              <div className="shrink-0">
+                <button onClick={() => navigate(`daily?date=${row.dateStr}`)}
+                  className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 whitespace-nowrap">
+                  {row.rep.sales ? "編集" : "入力"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Dashboard({ navigate }) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -36,6 +99,14 @@ export default function Dashboard({ navigate }) {
   const [reports, setReports] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [view, setView] = useState(
+    () => localStorage.getItem("dashboard-view") || "table"
+  );
+
+  const switchView = (v) => {
+    setView(v);
+    localStorage.setItem("dashboard-view", v);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -133,11 +204,21 @@ export default function Dashboard({ navigate }) {
         </div>
       )}
 
-      {/* Month nav */}
+      {/* Month nav + view toggle */}
       <div className="flex items-center gap-3 mb-3">
         <button onClick={prevMonth} className="p-1 rounded hover:bg-gray-100">‹</button>
         <span className="font-bold text-base">{year}年{month}月</span>
         <button onClick={nextMonth} className="p-1 rounded hover:bg-gray-100">›</button>
+        <div className="ml-auto flex rounded-lg border overflow-hidden text-xs font-medium">
+          <button onClick={() => switchView("table")}
+            className={`px-3 py-1.5 transition ${view === "table" ? "bg-blue-700 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+            テーブル
+          </button>
+          <button onClick={() => switchView("card")}
+            className={`px-3 py-1.5 border-l transition ${view === "card" ? "bg-blue-700 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}>
+            カード
+          </button>
+        </div>
       </div>
 
       {/* Chart + budget summary */}
@@ -178,96 +259,100 @@ export default function Dashboard({ navigate }) {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border overflow-x-auto mb-3">
-        <table className="w-full" style={{fontSize:12}}>
-          <thead>
-            <tr className="border-b-2 border-b-gray-300 bg-gray-50">
-              {HEADERS.map(({main, sub}, i) => (
-                <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap ${divider(i)}`}>
-                  <div>{main}</div>
-                  {sub && <div className="text-[9px] font-normal text-gray-300">{sub}</div>}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(row => {
-              const isToday = row.dateStr === todayStr;
-              const rowCls = `border-b ${row.isFuture ? "opacity-30" : ""} ${isToday ? "bg-blue-50" : ""}`;
-              const dowStr = DAYS_JA[row.dow];
-              const isWknd = row.isHol;
-              return (
-                <tr key={row.dateStr} className={rowCls}>
-                  <td className="px-1.5 py-1 text-center whitespace-nowrap">
-                    <span className={isWknd ? "text-red-500 font-medium" : ""}>
-                      {String(row.d).padStart(2,"0")}/{dowStr}
-                    </span>
-                  </td>
-                  <td className="px-1.5 py-1 text-center">
-                    <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${isWknd ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
-                      {isWknd ? "休" : "平"}
-                    </span>
-                  </td>
-                  <td className="px-1.5 py-1 text-right">
-                    <div>{row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}</div>
-                    {row.dayRate != null && (
-                      <div className={`text-[10px] ${row.dayRate >= 100 ? "text-blue-500" : "text-red-400"}`}>{row.dayRate}%</div>
-                    )}
-                  </td>
-                  <td className={`px-1.5 py-1 text-right bg-lime-50 ${divider(3)}`}>
-                    <span className="font-bold text-sm">{row.cumSales != null ? `¥${fmt(row.cumSales)}` : ""}</span>
-                  </td>
-                  <td className="px-1.5 py-1 text-center">
-                    {row.cumRate != null && (
-                      <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-blue-600" : "text-red-500"}`}>{row.cumRate}%</span>
-                    )}
-                  </td>
-                  <td className={`px-1.5 py-1 text-right bg-blue-50 ${divider(5)}`}>
-                    <span className="font-bold text-sm">{row.cumBudget != null ? `¥${fmt(row.cumBudget)}` : ""}</span>
-                  </td>
-                  <td className="px-1.5 py-1 text-right font-medium">
-                    {row.diff != null && (
-                      <span className={row.diff >= 0 ? "text-blue-600" : "text-red-500"}>
-                        {row.diff >= 0 ? "+" : ""}¥{fmt(row.diff)}
+      {/* Table or Card view */}
+      {view === "table" ? (
+        <div className="bg-white rounded-xl border overflow-x-auto mb-3">
+          <table className="w-full" style={{fontSize:12}}>
+            <thead>
+              <tr className="border-b-2 border-b-gray-300 bg-gray-50">
+                {HEADERS.map(({main, sub}, i) => (
+                  <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap ${divider(i)}`}>
+                    <div>{main}</div>
+                    {sub && <div className="text-[9px] font-normal text-gray-300">{sub}</div>}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(row => {
+                const isToday = row.dateStr === todayStr;
+                const rowCls = `border-b ${row.isFuture ? "opacity-30" : ""} ${isToday ? "bg-blue-50" : ""}`;
+                const dowStr = DAYS_JA[row.dow];
+                const isWknd = row.isHol;
+                return (
+                  <tr key={row.dateStr} className={rowCls}>
+                    <td className="px-1.5 py-1 text-center whitespace-nowrap">
+                      <span className={isWknd ? "text-red-500 font-medium" : ""}>
+                        {String(row.d).padStart(2,"0")}/{dowStr}
                       </span>
-                    )}
-                  </td>
-                  <td className={`px-1.5 py-1 text-center ${divider(7)}`}>{row.rep.bean_qty ? `${row.rep.bean_qty}個` : ""}</td>
-                  <td className={`px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
-                  <td className={`px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
-                  <td className={`px-1.5 py-1 ${divider(10)}`}>
-                    <div className="flex gap-0.5">
-                      {STAFF_KEYS.map(({k,l}) => (
-                        <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
-                          className={`px-1 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
-                          {l}
-                        </button>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-1.5 py-1 text-center">
-                    <button onClick={() => navigate(`daily?date=${row.dateStr}`)}
-                      className="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] hover:bg-blue-700 whitespace-nowrap">
-                      {row.rep.sales ? "編集" : "入力"}
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                    </td>
+                    <td className="px-1.5 py-1 text-center">
+                      <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${isWknd ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
+                        {isWknd ? "休" : "平"}
+                      </span>
+                    </td>
+                    <td className="px-1.5 py-1 text-right">
+                      <div>{row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}</div>
+                      {row.dayRate != null && (
+                        <div className={`text-[10px] ${row.dayRate >= 100 ? "text-blue-500" : "text-red-400"}`}>{row.dayRate}%</div>
+                      )}
+                    </td>
+                    <td className={`px-1.5 py-1 text-right bg-lime-50 ${divider(3)}`}>
+                      <span className="font-bold text-sm">{row.cumSales != null ? `¥${fmt(row.cumSales)}` : ""}</span>
+                    </td>
+                    <td className="px-1.5 py-1 text-center">
+                      {row.cumRate != null && (
+                        <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-blue-600" : "text-red-500"}`}>{row.cumRate}%</span>
+                      )}
+                    </td>
+                    <td className={`px-1.5 py-1 text-right bg-blue-50 ${divider(5)}`}>
+                      <span className="font-bold text-sm">{row.cumBudget != null ? `¥${fmt(row.cumBudget)}` : ""}</span>
+                    </td>
+                    <td className="px-1.5 py-1 text-right font-medium">
+                      {row.diff != null && (
+                        <span className={row.diff >= 0 ? "text-blue-600" : "text-red-500"}>
+                          {row.diff >= 0 ? "+" : ""}¥{fmt(row.diff)}
+                        </span>
+                      )}
+                    </td>
+                    <td className={`px-1.5 py-1 text-center ${divider(7)}`}>{row.rep.bean_qty ? `${row.rep.bean_qty}個` : ""}</td>
+                    <td className={`px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
+                    <td className={`px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
+                    <td className={`px-1.5 py-1 ${divider(10)}`}>
+                      <div className="flex gap-0.5">
+                        {STAFF_KEYS.map(({k,l}) => (
+                          <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
+                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-1.5 py-1 text-center">
+                      <button onClick={() => navigate(`daily?date=${row.dateStr}`)}
+                        className="px-2 py-0.5 bg-blue-600 text-white rounded text-[10px] hover:bg-blue-700 whitespace-nowrap">
+                        {row.rep.sales ? "編集" : "入力"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <CardView rows={rows} todayStr={todayStr} navigate={navigate} toggleCheck={toggleCheck}/>
+      )}
 
       {/* KPI cards */}
       <div className="grid grid-cols-3 gap-2 mb-2">
         {[
-          {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                              c:"text-blue-700"},
-          {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                             c:"text-gray-700"},
-          {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                     c:kpi.rate>=100?"text-blue-600":"text-red-500"},
-          {l:"豆販売(個)",  v:fmt(kpi.totalBean)||"—",                                c:"text-gray-700"},
-          {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—",      c:"text-gray-700"},
-          {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                               c:"text-gray-700"},
+          {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-blue-700"},
+          {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                        c:"text-gray-700"},
+          {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                c:kpi.rate>=100?"text-blue-600":"text-red-500"},
+          {l:"豆販売(個)",  v:fmt(kpi.totalBean)||"—",                           c:"text-gray-700"},
+          {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—", c:"text-gray-700"},
+          {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                          c:"text-gray-700"},
         ].map(({l,v,c},i) => (
           <div key={i} className="bg-white rounded-xl border p-2 text-center">
             <p className="text-gray-400 text-[10px]">{l}</p>
