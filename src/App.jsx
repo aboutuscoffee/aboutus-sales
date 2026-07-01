@@ -47,6 +47,12 @@ export default function App() {
   if (!STORES[storeId]) return <StoreSelector />;
 
   const storeName = STORES[storeId].short;
+  const otherStore = storeId === 'nijo' ? 'fushimi' : 'nijo';
+  const otherStoreName = STORES[otherStore].short;
+
+  const switchStore = () => {
+    window.location.search = `?store=${otherStore}`;
+  };
 
   const navItems = [
     {p:"",           l:"📊", t:"ダッシュボード"},
@@ -57,7 +63,11 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans">
       <header className="bg-[#1e3a5f] text-white px-4 py-2 flex items-center justify-between shrink-0">
-        <span className="font-bold text-sm">☕ {storeName} 売上管理</span>
+        <button onClick={switchStore}
+          className="flex items-center gap-1.5 font-bold text-sm hover:bg-white/10 rounded px-1.5 py-0.5 transition group">
+          ☕ {storeName} 売上管理
+          <span className="text-[10px] text-white/50 group-hover:text-white/80">⇄ {otherStoreName}</span>
+        </button>
         <div className="flex gap-3">
           {navItems.map(({p,l,t}) => (
             <button key={p} onClick={() => navigate(p)}
