@@ -18,9 +18,18 @@ const divider = (i) =>
   : DOTTED_DIVIDER.has(i) ? "border-l border-dotted border-l-gray-400" : "";
 
 const HEADERS = [
-  {main:"日付"}, {main:"区分"}, {main:"日別売上", sub:"達成率"}, {main:"累計(A)"},
-  {main:"達成率"}, {main:"累計予算(B)"}, {main:"差額"}, {main:"豆(個)"},
-  {main:"豆金額"}, {main:"杯数"}, {main:"確認"}, {main:""},
+  {main:"日付"},
+  {main:"区分"},
+  {main:"日別売上", sub:"達成率"},
+  {main:"累計(A)"},
+  {main:"達成率"},
+  {main:"累計予算(B)", mobile:false},
+  {main:"差額",        mobile:false},
+  {main:"豆(個)",     mobile:false},
+  {main:"豆金額",     mobile:false},
+  {main:"杯数",       mobile:false},
+  {main:"確認"},
+  {main:""},
 ];
 
 const STAFF_BY_STORE = {
@@ -260,8 +269,8 @@ export default function Dashboard({ navigate, store }) {
           <table className="w-full" style={{fontSize:12}}>
             <thead>
               <tr className="border-b-2 border-b-gray-300 bg-gray-50">
-                {HEADERS.map(({main, sub}, i) => (
-                  <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap ${divider(i)}`}>
+                {HEADERS.map(({main, sub, mobile}, i) => (
+                  <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap ${divider(i)} ${mobile === false ? "hidden sm:table-cell" : ""}`}>
                     <div>{main}</div>
                     {sub && <div className="text-[9px] font-normal text-gray-300">{sub}</div>}
                   </th>
@@ -300,24 +309,24 @@ export default function Dashboard({ navigate, store }) {
                         <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-[#1e3a5f]" : "text-red-500"}`}>{row.cumRate}%</span>
                       )}
                     </td>
-                    <td className={`px-1.5 py-1 text-right bg-blue-50 ${divider(5)}`}>
+                    <td className={`hidden sm:table-cell px-1.5 py-1 text-right bg-blue-50 ${divider(5)}`}>
                       <span className="font-bold text-sm">{row.cumBudget != null ? `¥${fmt(row.cumBudget)}` : ""}</span>
                     </td>
-                    <td className="px-1.5 py-1 text-right font-medium">
+                    <td className="hidden sm:table-cell px-1.5 py-1 text-right font-medium">
                       {row.diff != null && (
                         <span className={row.diff >= 0 ? "text-[#1e3a5f]" : "text-red-500"}>
                           {row.diff >= 0 ? "+" : ""}¥{fmt(row.diff)}
                         </span>
                       )}
                     </td>
-                    <td className={`px-1.5 py-1 text-center ${divider(7)}`}>{row.rep.bean_qty ? `${row.rep.bean_qty}個` : ""}</td>
-                    <td className={`px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
-                    <td className={`px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
+                    <td className={`hidden sm:table-cell px-1.5 py-1 text-center ${divider(7)}`}>{row.rep.bean_qty ? `${row.rep.bean_qty}個` : ""}</td>
+                    <td className={`hidden sm:table-cell px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
+                    <td className={`hidden sm:table-cell px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
                     <td className={`px-1.5 py-1 ${divider(10)}`}>
-                      <div className="flex gap-0.5 flex-nowrap">
+                      <div className="flex gap-0.5 flex-wrap">
                         {staffKeys.map(({k,l}) => (
                           <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
-                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition whitespace-nowrap ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
                             {l}
                           </button>
                         ))}
