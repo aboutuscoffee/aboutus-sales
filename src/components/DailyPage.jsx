@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { getMonthReports, getProducts, upsertDayReport } from "../lib/db.js";
+import { TIER_ORDER, buildTieredGroups } from "../lib/productUtils.js";
 
 const DAYS_JA = ["日","月","火","水","木","金","土"];
 const fmt = (n) => (n == null || n === "" ? "" : Number(n).toLocaleString());
@@ -104,15 +105,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
     setDate(toDateStr(d.getFullYear(), d.getMonth()+1, d.getDate()));
   };
 
-  const grouped = useMemo(() => {
-    const map = {};
-    for (const p of products) {
-      if (!map[p.name]) map[p.name] = [];
-      map[p.name].push(p);
-    }
-    Object.values(map).forEach(arr => arr.sort((a,b) => (a.grams||0) - (b.grams||0)));
-    return map;
-  }, [products]);
+  const tieredGroups = useMemo(() => buildTieredGroups(products), [products]);
 
   const toggleExpand = (name) => setExpanded(e => ({...e, [name]: !e[name]}));
 
@@ -215,38 +208,45 @@ export default function DailyPage({ navigate, searchParams, store }) {
             {products.length === 0 ? (
               <p className="text-xs text-gray-400">商品が登録されていません。管理画面の「豆商品登録」から登録してください。</p>
             ) : (
-              <div className="space-y-2">
-                {Object.entries(grouped).map(([name, variants]) => {
-                  const groupQty = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0), 0);
-                  const groupAmount = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0) * p.price, 0);
-                  const isOpen = !!expanded[name];
-                  return (
-                    <div key={name} className="border rounded-lg overflow-hidden">
-                      <button type="button" onClick={() => toggleExpand(name)}
-                        className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 text-sm">
-                        <span className="font-medium flex items-center gap-1.5">
-                          <span className={`inline-block transition-transform text-gray-400 ${isOpen ? "rotate-90" : ""}`}>▶</span>
-                          {name}
-                        </span>
-                        <span className={`text-xs font-semibold ${groupAmount > 0 ? "text-[#1e3a5f]" : "text-gray-400"}`}>
-                          {groupQty}個 / ¥{fmt(groupAmount)}
-                        </span>
-                      </button>
-                      {isOpen && (
-                        <div className="px-3 py-2 space-y-1.5 bg-white">
-                          {variants.map(p => (
-                            <div key={p.id} className="flex items-center gap-2">
-                              <span className="flex-1 text-xs text-gray-600">{p.grams}g <span className="text-gray-400">(¥{fmt(p.price)})</span></span>
-                              <input type="number" min="0" value={beanQty[p.id] || ""} placeholder="0"
-                                onChange={e => setBeanQty(b => ({...b, [p.id]: e.target.value}))}
-                                className="w-16 border rounded px-1.5 py-1 text-xs text-right focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+              <div className="space-y-3">
+                {TIER_ORDER.filter(tier => tieredGroups[tier]).map(tier => (
+                  <div key={tier}>
+                    <p className="text-[11px] font-bold text-gray-400 mb-1 px-0.5">{tier}</p>
+                    <div className="space-y-1.5">
+                      {tieredGroups[tier].map(({ name, variants }) => {
+                        const groupQty = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0), 0);
+                        const groupAmount = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0) * p.price, 0);
+                        const isOpen = !!expanded[name];
+                        return (
+                          <div key={name} className="border rounded-lg overflow-hidden">
+                            <button type="button" onClick={() => toggleExpand(name)}
+                              className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 text-sm">
+                              <span className="font-medium flex items-center gap-1.5 text-left">
+                                <span className={`inline-block transition-transform text-gray-400 shrink-0 ${isOpen ? "rotate-90" : ""}`}>▶</span>
+                                {name}
+                              </span>
+                              <span className={`text-xs font-semibold shrink-0 ml-2 ${groupAmount > 0 ? "text-[#1e3a5f]" : "text-gray-400"}`}>
+                                {groupQty}個 / ¥{fmt(groupAmount)}
+                              </span>
+                            </button>
+                            {isOpen && (
+                              <div className="px-3 py-2 space-y-1.5 bg-white">
+                                {variants.map(p => (
+                                  <div key={p.id} className="flex items-center gap-2">
+                                    <span className="flex-1 text-xs text-gray-600">{p.grams}g <span className="text-gray-400">(¥{fmt(p.price)})</span></span>
+                                    <input type="number" min="0" value={beanQty[p.id] || ""} placeholder="0"
+                                      onChange={e => setBeanQty(b => ({...b, [p.id]: e.target.value}))}
+                                      className="w-16 border rounded px-1.5 py-1 text-xs text-right focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
                 <div className="text-right text-sm font-bold pt-2 border-t">
                   合計: {beanTotalQty}個 / ¥{fmt(beanTotalAmount)}
                 </div>

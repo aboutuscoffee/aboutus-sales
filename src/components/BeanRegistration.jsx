@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { getAllProducts, upsertProduct, deleteProduct } from "../lib/db.js";
+import { TIER_ORDER, buildTieredGroups } from "../lib/productUtils.js";
 
 const fmt = (n) => (n == null || n === "" ? "" : Number(n).toLocaleString());
 
@@ -27,15 +28,7 @@ export default function BeanRegistration() {
 
   useEffect(() => { load(); }, [load]);
 
-  const grouped = useMemo(() => {
-    const map = {};
-    for (const p of products) {
-      if (!map[p.name]) map[p.name] = [];
-      map[p.name].push(p);
-    }
-    Object.values(map).forEach(arr => arr.sort((a,b) => (a.grams||0) - (b.grams||0)));
-    return map;
-  }, [products]);
+  const tieredGroups = useMemo(() => buildTieredGroups(products), [products]);
 
   const toggleExpand = (n) => setExpanded(e => ({...e, [n]: !e[n]}));
 
@@ -106,18 +99,22 @@ export default function BeanRegistration() {
       ) : products.length === 0 ? (
         <p className="text-gray-400 text-sm">登録されている商品はありません</p>
       ) : (
-        <div className="space-y-2">
-          {Object.entries(grouped).map(([gName, variants]) => {
+        <div className="space-y-3">
+          {TIER_ORDER.filter(tier => tieredGroups[tier]).map(tier => (
+            <div key={tier}>
+              <p className="text-[11px] font-bold text-gray-400 mb-1 px-0.5">{tier}</p>
+              <div className="space-y-1.5">
+                {tieredGroups[tier].map(({ name: gName, variants }) => {
             const isOpen = !!expanded[gName];
             return (
               <div key={gName} className="border rounded-lg overflow-hidden">
                 <button type="button" onClick={() => toggleExpand(gName)}
                   className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 text-sm">
-                  <span className="font-medium flex items-center gap-1.5">
-                    <span className={`inline-block transition-transform text-gray-400 ${isOpen ? "rotate-90" : ""}`}>▶</span>
+                  <span className="font-medium flex items-center gap-1.5 text-left">
+                    <span className={`inline-block transition-transform text-gray-400 shrink-0 ${isOpen ? "rotate-90" : ""}`}>▶</span>
                     {gName}
                   </span>
-                  <span className="text-xs text-gray-400">{variants.length}種類</span>
+                  <span className="text-xs text-gray-400 shrink-0 ml-2">{variants.length}種類</span>
                 </button>
                 {isOpen && (
                   <div className="divide-y">
@@ -141,6 +138,9 @@ export default function BeanRegistration() {
               </div>
             );
           })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
