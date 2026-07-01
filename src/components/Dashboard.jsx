@@ -63,7 +63,7 @@ function CardView({ rows, todayStr, navigate, toggleCheck, staffKeys }) {
                   {row.rep.bean_qty > 0 && <span>豆 {row.rep.bean_qty}個</span>}
                   {row.rep.drink_count > 0 && <span>{row.rep.drink_count}杯</span>}
                 </div>
-                <div className="flex gap-1 mt-1.5 flex-wrap">
+                <div className="flex gap-1 mt-1.5 flex-nowrap">
                   {staffKeys.map(({k,l}) => (
                     <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
                       className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
@@ -314,10 +314,10 @@ export default function Dashboard({ navigate, store }) {
                     <td className={`px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
                     <td className={`px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
                     <td className={`px-1.5 py-1 ${divider(10)}`}>
-                      <div className="flex gap-0.5 flex-wrap">
+                      <div className="flex gap-0.5 flex-nowrap">
                         {staffKeys.map(({k,l}) => (
                           <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
-                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition whitespace-nowrap ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
                             {l}
                           </button>
                         ))}
