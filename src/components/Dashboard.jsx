@@ -23,11 +23,11 @@ const HEADERS = [
   {main:"日別売上"},
   {main:"累計(A)"},
   {main:"達成率"},
-  {main:"累計予算(B)", mobile:false},
-  {main:"差額",        mobile:false},
-  {main:"豆(個)",     mobile:false},
-  {main:"豆金額",     mobile:false},
-  {main:"杯数",       mobile:false},
+  {main:"累計予算(B)"},
+  {main:"差額"},
+  {main:"豆(個)"},
+  {main:"豆金額"},
+  {main:"杯数"},
   {main:"確認"},
   {main:""},
 ];
@@ -57,20 +57,24 @@ function CardView({ rows, todayStr, navigate, toggleCheck, staffKeys }) {
               </div>
 
               <div className="flex-1 min-w-0">
+                {/* 累計 vs 目標累計差額・達成率 */}
                 <div className="flex items-baseline gap-2 flex-wrap">
                   <span className="text-base font-bold text-gray-900">
-                    {row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}
+                    {row.cumSales != null ? `¥${fmt(row.cumSales)}` : "—"}
                   </span>
-                  {row.dayRate != null && (
-                    <span className={`text-xs font-medium ${row.dayRate >= 100 ? "text-[#2563aa]" : "text-red-400"}`}>
-                      {row.dayRate}%
+                  {row.cumRate != null && (
+                    <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-[#1e3a5f]" : "text-red-500"}`}>
+                      {row.cumRate}%
                     </span>
                   )}
                 </div>
-                <div className="flex gap-3 mt-0.5 text-[11px] text-gray-500 flex-wrap">
-                  {row.cumSales != null && <span>累計 ¥{fmt(row.cumSales)}</span>}
-                  {row.rep.bean_qty > 0 && <span>豆 {row.rep.bean_qty}個</span>}
-                  {row.rep.drink_count > 0 && <span>{row.rep.drink_count}杯</span>}
+                <div className="flex gap-3 mt-0.5 text-[11px] flex-wrap">
+                  {row.diff != null && (
+                    <span className={`font-medium ${row.diff >= 0 ? "text-[#1e3a5f]" : "text-red-500"}`}>
+                      差額 {row.diff >= 0 ? "+" : ""}¥{fmt(row.diff)}
+                    </span>
+                  )}
+                  <span className="text-gray-400">日別 {row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}</span>
                 </div>
                 <div className="flex gap-1 mt-1.5 flex-nowrap">
                   {staffKeys.map(({k,l}) => (
@@ -163,13 +167,21 @@ export default function Dashboard({ navigate, store }) {
     });
   }, [days, year, month, reports, config, todayStr]);
 
-  const chartData = useMemo(() =>
-    rows.map(r => ({
-      day: r.d,
-      累計売上: r.isFuture ? null : r.cumSales,
-      累計予算: r.isFuture ? null : r.cumBudget,
-    })),
-  [rows]);
+  const chartData = useMemo(() => {
+    let paceCum = 0;
+    return rows.map(r => {
+      const dayBudget = r.isHol
+        ? (config?.holiday_budget || 0)
+        : (config?.weekday_budget || 0);
+      paceCum += dayBudget;
+      return {
+        day: r.d,
+        累計売上: r.isFuture ? null : r.cumSales,
+        累計予算: r.isFuture ? null : r.cumBudget,
+        目標ペース: paceCum,
+      };
+    });
+  }, [rows, config]);
 
   const kpi = useMemo(() => {
     const actual = rows.filter(r => !r.isFuture);
@@ -244,6 +256,7 @@ export default function Dashboard({ navigate, store }) {
                 )}
                 <Line type="monotone" dataKey="累計売上" stroke="#2563eb" strokeWidth={2} dot={false}/>
                 <Line type="monotone" dataKey="累計予算" stroke="#10b981" strokeWidth={1.5} strokeDasharray="4 4" dot={false}/>
+                <Line type="monotone" dataKey="目標ペース" stroke="#f97316" strokeWidth={1.5} strokeDasharray="2 3" dot={false}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -269,8 +282,8 @@ export default function Dashboard({ navigate, store }) {
           <table className="w-full" style={{fontSize:12}}>
             <thead>
               <tr className="border-b-2 border-b-gray-300 bg-gray-50">
-                {HEADERS.map(({main, sub, mobile}, i) => (
-                  <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap ${divider(i)} ${mobile === false ? "hidden sm:table-cell" : ""}`}>
+                {HEADERS.map(({main, sub}, i) => (
+                  <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap ${divider(i)}`}>
                     <div>{main}</div>
                     {sub && <div className="text-[9px] font-normal text-gray-300">{sub}</div>}
                   </th>
@@ -309,19 +322,19 @@ export default function Dashboard({ navigate, store }) {
                         <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-[#1e3a5f]" : "text-red-500"}`}>{row.cumRate}%</span>
                       )}
                     </td>
-                    <td className={`hidden sm:table-cell px-1.5 py-1 text-right bg-blue-50 ${divider(5)}`}>
+                    <td className={` px-1.5 py-1 text-right bg-blue-50 ${divider(5)}`}>
                       <span className="font-bold text-sm">{row.cumBudget != null ? `¥${fmt(row.cumBudget)}` : ""}</span>
                     </td>
-                    <td className="hidden sm:table-cell px-1.5 py-1 text-right font-medium">
+                    <td className=" px-1.5 py-1 text-right font-medium">
                       {row.diff != null && (
                         <span className={row.diff >= 0 ? "text-[#1e3a5f]" : "text-red-500"}>
                           {row.diff >= 0 ? "+" : ""}¥{fmt(row.diff)}
                         </span>
                       )}
                     </td>
-                    <td className={`hidden sm:table-cell px-1.5 py-1 text-center ${divider(7)}`}>{row.rep.bean_qty ? `${row.rep.bean_qty}個` : ""}</td>
-                    <td className={`hidden sm:table-cell px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
-                    <td className={`hidden sm:table-cell px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
+                    <td className={` px-1.5 py-1 text-center ${divider(7)}`}>{row.rep.bean_qty ? `${row.rep.bean_qty}個` : ""}</td>
+                    <td className={` px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
+                    <td className={` px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
                     <td className={`px-1 py-1 ${divider(10)}`}>
                       <div className="flex gap-0.5 flex-wrap" style={{maxWidth:"72px"}}>
                         {staffKeys.map(({k,l}) => (
