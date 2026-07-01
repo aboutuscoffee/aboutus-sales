@@ -326,7 +326,7 @@ export default function Dashboard({ navigate, store }) {
                       <div className="flex gap-0.5 flex-wrap">
                         {staffKeys.map(({k,l}) => (
                           <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
-                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition whitespace-nowrap ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
                             {l}
                           </button>
                         ))}
