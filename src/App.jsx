@@ -58,28 +58,31 @@ export default function App() {
     window.location.href = url.toString();
   };
 
-  const navItems = [
-    {p:"",           l:"📊", t:"ダッシュボード"},
-    {p:"daily-view", l:"📝", t:"日報"},
-    {p:"admin",      l:"⚙️", t:"管理画面"},
-  ];
-
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans">
-      <header className="bg-[#1e3a5f] text-white px-4 py-2 flex items-center justify-between shrink-0">
+      <header className="bg-[#1e3a5f] text-white px-2 py-2 flex items-center gap-1 shrink-0">
+        {/* 店舗名 + 切り替え */}
         <button onClick={switchStore}
-          className="flex items-center gap-1.5 font-bold text-sm hover:bg-white/10 rounded px-1.5 py-0.5 transition group">
-          ☕ {storeName} 売上管理
-          <span className="text-[10px] text-white/50 group-hover:text-white/80">⇄ {otherStoreName}</span>
+          className="flex flex-col items-start leading-tight px-2 py-1 rounded hover:bg-white/10 transition shrink-0">
+          <span className="text-[11px] font-bold whitespace-nowrap">☕ {storeName}売上管理</span>
+          <span className="text-[9px] text-white/50 whitespace-nowrap">⇄ {otherStoreName}</span>
         </button>
-        <div className="flex gap-3">
-          {navItems.map(({p,l,t}) => (
-            <button key={p} onClick={() => navigate(p)}
-              className={`text-xs px-2 py-1 rounded ${page===p ? "bg-white/20" : "hover:bg-white/10"}`}>
-              {l} {t}
-            </button>
-          ))}
-        </div>
+
+        <div className="flex-1"/>
+
+        {/* ナビ */}
+        <button onClick={() => navigate("")}
+          className={`text-[11px] px-2 py-1 rounded whitespace-nowrap ${page==="" ? "bg-white/20" : "hover:bg-white/10"}`}>
+          推移
+        </button>
+        <button onClick={() => navigate("daily-view")}
+          className={`text-[11px] px-2 py-1 rounded whitespace-nowrap ${page==="daily-view" ? "bg-white/20" : "hover:bg-white/10"}`}>
+          日報
+        </button>
+        <button onClick={() => navigate("admin")}
+          className={`text-[11px] px-2 py-1 rounded ${page==="admin" ? "bg-white/20" : "hover:bg-white/10"}`}>
+          ⚙️
+        </button>
       </header>
 
       {page === ""           && <Dashboard     navigate={navigate} store={storeId}/>}

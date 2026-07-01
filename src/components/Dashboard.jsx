@@ -20,14 +20,14 @@ const divider = (i) =>
 const HEADERS = [
   {main:"日付"},
   {main:"区分"},
-  {main:"日別売上", sub:"達成率"},
-  {main:"累計(A)",      mobile:false},
-  {main:"達成率",       mobile:false},
-  {main:"累計予算(B)",  mobile:false},
-  {main:"差額",         mobile:false},
-  {main:"豆(個)",      mobile:false},
-  {main:"豆金額",      mobile:false},
-  {main:"杯数",        mobile:false},
+  {main:"日別売上"},
+  {main:"累計(A)"},
+  {main:"達成率"},
+  {main:"累計予算(B)", mobile:false},
+  {main:"差額",        mobile:false},
+  {main:"豆(個)",     mobile:false},
+  {main:"豆金額",     mobile:false},
+  {main:"杯数",       mobile:false},
   {main:"確認"},
   {main:""},
 ];
@@ -298,13 +298,13 @@ export default function Dashboard({ navigate, store }) {
                     <td className="px-1.5 py-1 text-right">
                       <div>{row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}</div>
                       {row.dayRate != null && (
-                        <div className={`text-[10px] ${row.dayRate >= 100 ? "text-[#2563aa]" : "text-red-400"}`}>{row.dayRate}%</div>
+                        <div className={`text-[9px] ${row.dayRate >= 100 ? "text-[#2563aa]" : "text-red-400"}`}>{row.dayRate}%</div>
                       )}
                     </td>
-                    <td className={`hidden sm:table-cell px-1.5 py-1 text-right bg-lime-50 ${divider(3)}`}>
+                    <td className={`px-1.5 py-1 text-right bg-lime-50 ${divider(3)}`}>
                       <span className="font-bold text-sm">{row.cumSales != null ? `¥${fmt(row.cumSales)}` : ""}</span>
                     </td>
-                    <td className="hidden sm:table-cell px-1.5 py-1 text-center">
+                    <td className="px-1.5 py-1 text-center">
                       {row.cumRate != null && (
                         <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-[#1e3a5f]" : "text-red-500"}`}>{row.cumRate}%</span>
                       )}
@@ -323,12 +323,11 @@ export default function Dashboard({ navigate, store }) {
                     <td className={`hidden sm:table-cell px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
                     <td className={`hidden sm:table-cell px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
                     <td className={`px-1 py-1 ${divider(10)}`}>
-                      <div className="flex gap-0.5 flex-wrap">
+                      <div className="flex gap-0.5 flex-wrap" style={{maxWidth:"72px"}}>
                         {staffKeys.map(({k,l}) => (
                           <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
-                            title={l}
-                            className={`w-6 h-6 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
-                            {l[0]}
+                            className={`px-1 py-0.5 rounded text-[10px] font-medium transition whitespace-nowrap ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                            {l}
                           </button>
                         ))}
                       </div>
