@@ -11,7 +11,9 @@ const STORES = {
 
 function StoreSelector() {
   const select = (id) => {
-    window.location.search = `?store=${id}`;
+    const url = new URL(window.location.href);
+    url.searchParams.set('store', id);
+    window.location.href = url.toString();
   };
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans items-center justify-center gap-6">
@@ -51,7 +53,9 @@ export default function App() {
   const otherStoreName = STORES[otherStore].short;
 
   const switchStore = () => {
-    window.location.search = `?store=${otherStore}`;
+    const url = new URL(window.location.href);
+    url.searchParams.set('store', otherStore);
+    window.location.href = url.toString();
   };
 
   const navItems = [
