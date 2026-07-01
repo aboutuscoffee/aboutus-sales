@@ -4,7 +4,37 @@ import DailyPage from "./components/DailyPage.jsx";
 import DailyViewPage from "./components/DailyViewPage.jsx";
 import AdminPage from "./components/AdminPage.jsx";
 
+const STORES = {
+  nijo:    { label: "二条城店", short: "二条" },
+  fushimi: { label: "伏見店",   short: "伏見" },
+};
+
+function StoreSelector() {
+  const select = (id) => {
+    window.location.search = `?store=${id}`;
+  };
+  return (
+    <div className="flex flex-col h-screen bg-gray-50 font-sans items-center justify-center gap-6">
+      <div className="text-center mb-2">
+        <p className="text-2xl font-bold text-[#1e3a5f]">☕ 売上管理</p>
+        <p className="text-sm text-gray-400 mt-1">About Us Coffee</p>
+      </div>
+      <p className="text-sm text-gray-600">店舗を選択してください</p>
+      <div className="flex gap-4">
+        {Object.entries(STORES).map(([id, {label}]) => (
+          <button key={id} onClick={() => select(id)}
+            className="w-40 py-6 bg-[#1e3a5f] text-white rounded-2xl text-base font-bold hover:bg-[#162d4a] shadow-md">
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  const storeId = new URLSearchParams(window.location.search).get("store");
+
   const [page, setPage] = useState("");
   const [searchParams, setSearchParams] = useState(new URLSearchParams());
 
@@ -13,6 +43,10 @@ export default function App() {
     setPage(p || "");
     setSearchParams(new URLSearchParams(q || ""));
   }, []);
+
+  if (!STORES[storeId]) return <StoreSelector />;
+
+  const storeName = STORES[storeId].short;
 
   const navItems = [
     {p:"",           l:"📊", t:"ダッシュボード"},
@@ -23,7 +57,7 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen bg-gray-50 font-sans">
       <header className="bg-[#1e3a5f] text-white px-4 py-2 flex items-center justify-between shrink-0">
-        <span className="font-bold text-sm">☕ 売上管理</span>
+        <span className="font-bold text-sm">☕ {storeName} 売上管理</span>
         <div className="flex gap-3">
           {navItems.map(({p,l,t}) => (
             <button key={p} onClick={() => navigate(p)}
@@ -34,10 +68,10 @@ export default function App() {
         </div>
       </header>
 
-      {page === ""           && <Dashboard     navigate={navigate}/>}
-      {page === "daily"      && <DailyPage     navigate={navigate} searchParams={searchParams}/>}
-      {page === "daily-view" && <DailyViewPage navigate={navigate} searchParams={searchParams}/>}
-      {page === "admin"      && <AdminPage     navigate={navigate}/>}
+      {page === ""           && <Dashboard     navigate={navigate} store={storeId}/>}
+      {page === "daily"      && <DailyPage     navigate={navigate} searchParams={searchParams} store={storeId}/>}
+      {page === "daily-view" && <DailyViewPage navigate={navigate} searchParams={searchParams} store={storeId}/>}
+      {page === "admin"      && <AdminPage     navigate={navigate} store={storeId}/>}
     </div>
   );
 }

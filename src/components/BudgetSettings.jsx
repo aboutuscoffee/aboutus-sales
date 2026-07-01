@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getBudgetConfig, upsertBudgetConfig } from "../lib/db.js";
 
-export default function BudgetSettings() {
+export default function BudgetSettings({ store }) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -14,7 +14,7 @@ export default function BudgetSettings() {
     setLoading(true);
     setError(null);
     try {
-      const r = await getBudgetConfig(year, month);
+      const r = await getBudgetConfig(year, month, store);
       if (r) setForm({ target: r.target ?? "", weekday_budget: r.weekday_budget ?? "", holiday_budget: r.holiday_budget ?? "" });
       else setForm({ target:"", weekday_budget:"", holiday_budget:"" });
     } catch (e) {
@@ -23,7 +23,7 @@ export default function BudgetSettings() {
       setSaved(false);
       setLoading(false);
     }
-  }, [year, month]);
+  }, [year, month, store]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -34,7 +34,7 @@ export default function BudgetSettings() {
         target: Number(form.target),
         weekday_budget: Number(form.weekday_budget),
         holiday_budget: Number(form.holiday_budget),
-      });
+      }, store);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {

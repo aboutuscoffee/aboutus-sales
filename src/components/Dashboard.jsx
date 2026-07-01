@@ -23,12 +23,12 @@ const HEADERS = [
   {main:"豆金額"}, {main:"杯数"}, {main:"確認"}, {main:""},
 ];
 
-const STAFF_KEYS = [
-  {k:"check_kanagawa",l:"金川"},{k:"check_yoshino",l:"芳野"},
-  {k:"check_miyata",l:"宮田"},{k:"check_matsuda",l:"松田"},
-];
+const STAFF_BY_STORE = {
+  nijo:    [{k:"check_kanagawa",l:"金川"},{k:"check_yoshino",l:"芳野"},{k:"check_matsuda",l:"松田"},{k:"check_munekiyo",l:"宗清"}],
+  fushimi: [{k:"check_kanagawa",l:"金川"},{k:"check_miyao",l:"宮尾"},{k:"check_miyata",l:"宮田"},{k:"check_kawamoto",l:"川本"},{k:"check_nakao",l:"中尾"}],
+};
 
-function CardView({ rows, todayStr, navigate, toggleCheck }) {
+function CardView({ rows, todayStr, navigate, toggleCheck, staffKeys }) {
   return (
     <div className="space-y-2 mb-3">
       {rows.map(row => {
@@ -38,7 +38,6 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
           <div key={row.dateStr}
             className={`bg-white rounded-xl border p-3 ${row.isFuture ? "opacity-30" : ""} ${isToday ? "border-[#1e3a5f] bg-blue-50" : ""}`}>
             <div className="flex items-start justify-between gap-2">
-              {/* 左：日付・区分 */}
               <div className="shrink-0 w-16">
                 <p className={`text-sm font-bold ${row.isHol ? "text-red-500" : "text-gray-800"}`}>
                   {String(row.d).padStart(2,"0")}日/{dowStr}
@@ -48,7 +47,6 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
                 </span>
               </div>
 
-              {/* 中：売上・累計 */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 flex-wrap">
                   <span className="text-base font-bold text-gray-900">
@@ -65,9 +63,8 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
                   {row.rep.bean_qty > 0 && <span>豆 {row.rep.bean_qty}個</span>}
                   {row.rep.drink_count > 0 && <span>{row.rep.drink_count}杯</span>}
                 </div>
-                {/* スタッフ確認 */}
-                <div className="flex gap-1 mt-1.5">
-                  {STAFF_KEYS.map(({k,l}) => (
+                <div className="flex gap-1 mt-1.5 flex-wrap">
+                  {staffKeys.map(({k,l}) => (
                     <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
                       className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
                       {l}
@@ -76,7 +73,6 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
                 </div>
               </div>
 
-              {/* 右：入力ボタン */}
               <div className="shrink-0">
                 <button onClick={() => navigate(`daily?date=${row.dateStr}`)}
                   className="px-2.5 py-1 bg-[#1e3a5f] text-white rounded-lg text-xs hover:bg-[#162d4a] whitespace-nowrap">
@@ -91,7 +87,7 @@ function CardView({ rows, todayStr, navigate, toggleCheck }) {
   );
 }
 
-export default function Dashboard({ navigate }) {
+export default function Dashboard({ navigate, store }) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -103,6 +99,8 @@ export default function Dashboard({ navigate }) {
     () => localStorage.getItem("dashboard-view") || "table"
   );
 
+  const staffKeys = STAFF_BY_STORE[store] || STAFF_BY_STORE.nijo;
+
   const switchView = (v) => {
     setView(v);
     localStorage.setItem("dashboard-view", v);
@@ -113,8 +111,8 @@ export default function Dashboard({ navigate }) {
     setError(null);
     try {
       const [cfg, reps] = await Promise.all([
-        getBudgetConfig(year, month),
-        getMonthReports(year, month),
+        getBudgetConfig(year, month, store),
+        getMonthReports(year, month, store),
       ]);
       setConfig(cfg);
       setReports(reps);
@@ -123,7 +121,7 @@ export default function Dashboard({ navigate }) {
     } finally {
       setLoading(false);
     }
-  }, [year, month]);
+  }, [year, month, store]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -180,7 +178,7 @@ export default function Dashboard({ navigate }) {
     const updated = { ...rep, [key]: !rep[key] };
     setReports(prev => ({ ...prev, [dateStr]: updated }));
     try {
-      await upsertDayReport(dateStr, { [key]: !rep[key] });
+      await upsertDayReport(dateStr, { [key]: !rep[key] }, store);
     } catch {
       setReports(prev => ({ ...prev, [dateStr]: rep }));
     }
@@ -204,7 +202,6 @@ export default function Dashboard({ navigate }) {
         </div>
       )}
 
-      {/* Month nav + view toggle */}
       <div className="flex items-center gap-3 mb-3">
         <button onClick={prevMonth} className="p-1 rounded hover:bg-gray-100">‹</button>
         <span className="font-bold text-base">{year}年{month}月</span>
@@ -221,7 +218,6 @@ export default function Dashboard({ navigate }) {
         </div>
       </div>
 
-      {/* Chart + budget summary */}
       <div className="bg-white rounded-xl border p-3 mb-3">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 min-w-0">
@@ -259,7 +255,6 @@ export default function Dashboard({ navigate }) {
         </div>
       </div>
 
-      {/* Table or Card view */}
       {view === "table" ? (
         <div className="bg-white rounded-xl border overflow-x-auto mb-3">
           <table className="w-full" style={{fontSize:12}}>
@@ -319,8 +314,8 @@ export default function Dashboard({ navigate }) {
                     <td className={`px-1.5 py-1 text-right ${divider(8)}`}>{row.rep.bean_amount ? `¥${fmt(row.rep.bean_amount)}` : ""}</td>
                     <td className={`px-1.5 py-1 text-center text-[10px] whitespace-nowrap ${divider(9)}`}>{row.rep.drink_count ? `${row.rep.drink_count}杯` : ""}</td>
                     <td className={`px-1.5 py-1 ${divider(10)}`}>
-                      <div className="flex gap-0.5">
-                        {STAFF_KEYS.map(({k,l}) => (
+                      <div className="flex gap-0.5 flex-wrap">
+                        {staffKeys.map(({k,l}) => (
                           <button key={k} onClick={() => !row.isFuture && toggleCheck(row.dateStr, k)}
                             className={`px-1 py-0.5 rounded text-[10px] font-medium transition ${row.rep[k] ? "bg-green-500 text-white" : "bg-gray-100 text-gray-500"}`}>
                             {l}
@@ -341,10 +336,9 @@ export default function Dashboard({ navigate }) {
           </table>
         </div>
       ) : (
-        <CardView rows={rows} todayStr={todayStr} navigate={navigate} toggleCheck={toggleCheck}/>
+        <CardView rows={rows} todayStr={todayStr} navigate={navigate} toggleCheck={toggleCheck} staffKeys={staffKeys}/>
       )}
 
-      {/* KPI cards */}
       <div className="grid grid-cols-3 gap-2 mb-2">
         {[
           {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-[#1e3a5f]"},

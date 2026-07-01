@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getProducts, upsertProduct, deleteProduct } from "../lib/db.js";
+import { getAllProducts, upsertProduct, deleteProduct } from "../lib/db.js";
 
 const fmt = (n) => (n == null || n === "" ? "" : Number(n).toLocaleString());
 
@@ -16,7 +16,7 @@ export default function BeanRegistration() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const list = await getProducts();
+      const list = await getAllProducts();
       setProductsState(list);
     } catch (e) {
       setError(e.message);
@@ -47,6 +47,8 @@ export default function BeanRegistration() {
       name: name.trim(),
       grams: Number(grams),
       price: Number(price),
+      show_nijo: true,
+      show_fushimi: true,
     };
     try {
       await upsertProduct(newProduct);
@@ -57,6 +59,17 @@ export default function BeanRegistration() {
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
     } catch (e) {
+      setError(e.message);
+    }
+  };
+
+  const toggleStoreFlag = async (product, flag) => {
+    const updated = { ...product, [flag]: !product[flag] };
+    setProductsState(prev => prev.map(p => p.id === product.id ? updated : p));
+    try {
+      await upsertProduct(updated);
+    } catch (e) {
+      setProductsState(prev => prev.map(p => p.id === product.id ? product : p));
       setError(e.message);
     }
   };
@@ -73,7 +86,8 @@ export default function BeanRegistration() {
 
   return (
     <div className="bg-white rounded-xl border p-4">
-      <p className="text-xs font-semibold text-gray-600 mb-3">豆商品の登録（種類名 + グラム数 + 単価）</p>
+      <p className="text-xs font-semibold text-gray-600 mb-1">豆商品の登録（種類名 + グラム数 + 単価）</p>
+      <p className="text-[11px] text-gray-400 mb-3">二条・伏見ボタンで各店舗への表示をON/OFFできます</p>
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2 mb-3">{error}</div>
       )}
@@ -108,12 +122,18 @@ export default function BeanRegistration() {
                 {isOpen && (
                   <div className="divide-y">
                     {variants.map(p => (
-                      <div key={p.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                        <span>{p.grams}g</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-gray-500">¥{fmt(p.price)}</span>
-                          <button onClick={() => removeProduct(p.id)} className="text-red-500 text-xs hover:underline">削除</button>
-                        </div>
+                      <div key={p.id} className="flex items-center gap-2 px-3 py-2 text-sm">
+                        <span className="w-14 shrink-0 text-gray-700">{p.grams}g</span>
+                        <span className="text-gray-500 flex-1">¥{fmt(p.price)}</span>
+                        <button onClick={() => toggleStoreFlag(p, 'show_nijo')}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium border transition ${p.show_nijo !== false ? "bg-[#1e3a5f] text-white border-[#1e3a5f]" : "bg-white text-gray-400 border-gray-200"}`}>
+                          二条
+                        </button>
+                        <button onClick={() => toggleStoreFlag(p, 'show_fushimi')}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium border transition ${p.show_fushimi !== false ? "bg-[#1e3a5f] text-white border-[#1e3a5f]" : "bg-white text-gray-400 border-gray-200"}`}>
+                          伏見
+                        </button>
+                        <button onClick={() => removeProduct(p.id)} className="text-red-500 text-xs hover:underline shrink-0">削除</button>
                       </div>
                     ))}
                   </div>

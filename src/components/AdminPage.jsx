@@ -2,7 +2,7 @@ import { useState } from "react";
 import BudgetSettings from "./BudgetSettings.jsx";
 import BeanRegistration from "./BeanRegistration.jsx";
 
-export default function AdminPage({ navigate }) {
+export default function AdminPage({ navigate, store }) {
   const [tab, setTab] = useState("budget");
 
   return (
@@ -19,7 +19,7 @@ export default function AdminPage({ navigate }) {
         </button>
       </div>
 
-      {tab === "budget" ? <BudgetSettings/> : <BeanRegistration/>}
+      {tab === "budget" ? <BudgetSettings store={store}/> : <BeanRegistration/>}
 
       <div className="mt-4">
         <button onClick={() => navigate("")} className="border rounded-xl py-2.5 px-4 text-sm hover:bg-gray-50">← ダッシュボードへ戻る</button>

@@ -6,7 +6,9 @@ const fmt = (n) => (n == null || n === "" ? "" : Number(n).toLocaleString());
 const toDateStr = (y, m, d) =>
   `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
-export default function DailyViewPage({ navigate, searchParams }) {
+const WEATHER_LABEL = { sunny:"☀️ 晴れ", cloudy:"⛅ 曇り", rainy:"🌧️ 雨", snowy:"❄️ 雪" };
+
+export default function DailyViewPage({ navigate, searchParams, store }) {
   const today = new Date();
   const defaultDate = toDateStr(today.getFullYear(), today.getMonth()+1, today.getDate());
   const [date, setDate] = useState(searchParams.get("date") || defaultDate);
@@ -19,12 +21,12 @@ export default function DailyViewPage({ navigate, searchParams }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const reps = await getMonthReports(y, m);
+      const reps = await getMonthReports(y, m, store);
       setRep(reps[date] || null);
     } finally {
       setLoading(false);
     }
-  }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [date, store]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(); }, [load]);
 
@@ -69,18 +71,22 @@ export default function DailyViewPage({ navigate, searchParams }) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-4 gap-2 mb-3">
             <div className="bg-white rounded-xl border p-2 text-center">
               <p className="text-gray-400 text-[10px]">売上</p>
               <p className="font-bold text-sm text-[#1e3a5f]">{rep.sales ? `¥${fmt(rep.sales)}` : "—"}</p>
             </div>
             <div className="bg-white rounded-xl border p-2 text-center">
               <p className="text-gray-400 text-[10px]">豆販売</p>
-              <p className="font-bold text-sm text-gray-700">{rep.bean_qty ? `${rep.bean_qty}個 / ¥${fmt(rep.bean_amount)}` : "—"}</p>
+              <p className="font-bold text-sm text-gray-700">{rep.bean_qty ? `${rep.bean_qty}個` : "—"}</p>
             </div>
             <div className="bg-white rounded-xl border p-2 text-center">
               <p className="text-gray-400 text-[10px]">ドリンク</p>
               <p className="font-bold text-sm text-gray-700">{rep.drink_count ? `${rep.drink_count}杯` : "—"}</p>
+            </div>
+            <div className="bg-white rounded-xl border p-2 text-center">
+              <p className="text-gray-400 text-[10px]">天気</p>
+              <p className="font-bold text-sm text-gray-700">{rep.weather ? WEATHER_LABEL[rep.weather] : "—"}</p>
             </div>
           </div>
 
@@ -92,6 +98,20 @@ export default function DailyViewPage({ navigate, searchParams }) {
                   <div key={i} className="flex justify-between py-1.5 text-sm">
                     <span>{b.name} × {b.qty}個</span>
                     <span className="text-gray-600">¥{fmt(b.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {rep.staff_comments && Object.keys(rep.staff_comments).length > 0 && (
+            <div className="bg-white rounded-xl border p-3 mb-3">
+              <p className="text-xs font-semibold text-gray-600 mb-2">スタッフ評価</p>
+              <div className="space-y-1.5">
+                {Object.entries(rep.staff_comments).filter(([,v])=>v).map(([name, comment]) => (
+                  <div key={name} className="flex gap-2 text-sm">
+                    <span className="text-xs font-medium text-[#1e3a5f] w-12 shrink-0">{name}</span>
+                    <span className="text-gray-700 text-xs">{comment}</span>
                   </div>
                 ))}
               </div>
