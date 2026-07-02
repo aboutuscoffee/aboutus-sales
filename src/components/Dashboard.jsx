@@ -318,7 +318,7 @@ export default function Dashboard({ navigate, store }) {
                       <span className="font-bold text-sm">{row.sales > 0 && row.cumSales != null ? `¥${fmt(row.cumSales)}` : ""}</span>
                     </td>
                     <td className="px-1.5 py-1 text-center">
-                      {row.cumRate != null && (
+                      {row.sales > 0 && row.cumRate != null && (
                         <span className={`text-sm font-bold ${row.cumRate >= 100 ? "text-[#1e3a5f]" : "text-red-500"}`}>{row.cumRate}%</span>
                       )}
                     </td>
