@@ -315,7 +315,7 @@ export default function Dashboard({ navigate, store }) {
                       )}
                     </td>
                     <td className={`px-1.5 py-1 text-right bg-lime-50 ${divider(3)}`}>
-                      <span className="font-bold text-sm">{row.cumSales != null ? `¥${fmt(row.cumSales)}` : ""}</span>
+                      <span className="font-bold text-sm">{row.sales > 0 && row.cumSales != null ? `¥${fmt(row.cumSales)}` : ""}</span>
                     </td>
                     <td className="px-1.5 py-1 text-center">
                       {row.cumRate != null && (
