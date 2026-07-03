@@ -26,7 +26,7 @@ const STAFF_KEYS = {
   "宗清": "check_munekiyo",
   "宮尾": "check_miyao",
   "宮田": "check_miyata",
-  "川端": "check_kawamoto",
+  "川端": "check_kawabata",
   "中尾": "check_nakao",
 };
 
