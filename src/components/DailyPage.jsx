@@ -16,7 +16,7 @@ const WEATHER_OPTIONS = [
 
 const STAFF_BY_STORE = {
   nijo:    ["金川","芳野","松田","宗清"],
-  fushimi: ["金川","宮尾","宮田","川本","中尾"],
+  fushimi: ["金川","宮尾","宮田","川端","中尾"],
 };
 
 const STAFF_KEYS = {
@@ -26,7 +26,7 @@ const STAFF_KEYS = {
   "宗清": "check_munekiyo",
   "宮尾": "check_miyao",
   "宮田": "check_miyata",
-  "川本": "check_kawamoto",
+  "川端": "check_kawamoto",
   "中尾": "check_nakao",
 };
 
