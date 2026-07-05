@@ -33,7 +33,7 @@ const HEADERS = [
 ];
 
 const STAFF_BY_STORE = {
-  nijo:    [{k:"check_kanagawa",l:"金川"},{k:"check_yoshino",l:"芳野"},{k:"check_matsuda",l:"松田"},{k:"check_munekiyo",l:"宗清"}],
+  nijo:    [{k:"check_kanagawa",l:"金川"},{k:"check_yoshino",l:"芳野"},{k:"check_matsuda",l:"松田"},{k:"check_munekiyo",l:"宗清"},{k:"check_miyata",l:"宮田"}],
   fushimi: [{k:"check_kanagawa",l:"金川"},{k:"check_miyao",l:"宮尾"},{k:"check_miyata",l:"宮田"},{k:"check_kawabata",l:"川端"},{k:"check_nakao",l:"中尾"}],
 };
 

@@ -15,7 +15,7 @@ const WEATHER_OPTIONS = [
 ];
 
 const STAFF_BY_STORE = {
-  nijo:    ["金川","芳野","松田","宗清"],
+  nijo:    ["金川","芳野","松田","宗清","宮田"],
   fushimi: ["金川","宮尾","宮田","川端","中尾"],
 };
 
