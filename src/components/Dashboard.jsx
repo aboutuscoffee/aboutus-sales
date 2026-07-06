@@ -6,6 +6,7 @@ import {
 import { getMonthReports, getBudgetConfig, upsertDayReport } from "../lib/db.js";
 
 const DAYS_JA = ["日","月","火","水","木","金","土"];
+const WEATHER_ICON = { sunny:"☀️", cloudy:"⛅", rainy:"🌧️", snowy:"❄️" };
 const fmt = (n) => (n == null || n === "" ? "" : Number(n).toLocaleString());
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate();
 const toDateStr = (y, m, d) =>
@@ -50,6 +51,7 @@ function CardView({ rows, todayStr, navigate, toggleCheck, staffKeys }) {
               <div className="shrink-0 w-16">
                 <p className={`text-sm font-bold ${row.isHol ? "text-red-500" : "text-gray-800"}`}>
                   {String(row.d).padStart(2,"0")}日/{dowStr}
+                  {row.rep.weather && <span className="ml-0.5 text-[12px]">{WEATHER_ICON[row.rep.weather]}</span>}
                 </p>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${row.isHol ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
                   {row.isHol ? "休日" : "平日"}
@@ -302,6 +304,9 @@ export default function Dashboard({ navigate, store }) {
                       <span className={isWknd ? "text-red-500 font-medium" : ""}>
                         {String(row.d).padStart(2,"0")}/{dowStr}
                       </span>
+                      {row.rep.weather && (
+                        <span className="ml-0.5 text-[11px]">{WEATHER_ICON[row.rep.weather]}</span>
+                      )}
                     </td>
                     <td className="px-1.5 py-1 text-center">
                       <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${isWknd ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
