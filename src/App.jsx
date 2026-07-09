@@ -4,6 +4,8 @@ import DailyPage from "./components/DailyPage.jsx";
 import DailyViewPage from "./components/DailyViewPage.jsx";
 import AdminPage from "./components/AdminPage.jsx";
 
+const YOY_APP_URL = "https://aboutuscoffee.github.io/aboutus-sales-yoy/";
+
 const STORES = {
   nijo:    { label: "二条城店", short: "二条" },
   fushimi: { label: "伏見店",   short: "伏見" },
@@ -79,6 +81,10 @@ export default function App() {
           className={`text-[11px] px-2 py-1 rounded whitespace-nowrap ${page==="daily-view" ? "bg-white/20" : "hover:bg-white/10"}`}>
           日報
         </button>
+        <a href={`${YOY_APP_URL}?store=${storeId}`} target="_blank" rel="noopener noreferrer"
+          className="text-[11px] px-2 py-1 rounded whitespace-nowrap hover:bg-white/10">
+          昨対 ↗
+        </a>
         <button onClick={() => navigate("admin")}
           className={`text-[11px] px-2 py-1 rounded ${page==="admin" ? "bg-white/20" : "hover:bg-white/10"}`}>
           ⚙️
