@@ -38,6 +38,7 @@ export async function getProducts(store) {
     .from('bean_products')
     .select('*')
     .eq(col, true)
+    .eq('active', true)
     .order('name')
     .order('grams');
   if (error) throw error;
