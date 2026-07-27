@@ -280,12 +280,12 @@ export default function Dashboard({ navigate, store }) {
       </div>
 
       {view === "table" ? (
-        <div className="bg-white rounded-xl border overflow-x-auto mb-3">
+        <div className="bg-white rounded-xl border mb-3" style={{overflow:"auto", maxHeight:"calc(100vh - 300px)"}}>
           <table className="w-full" style={{fontSize:12}}>
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="border-b-2 border-b-gray-300 bg-gray-50">
                 {HEADERS.map(({main, sub}, i) => (
-                  <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap ${divider(i)}`}>
+                  <th key={i} className={`px-1.5 py-1.5 text-center font-medium text-gray-400 whitespace-nowrap bg-gray-50 ${divider(i)}`}>
                     <div>{main}</div>
                     {sub && <div className="text-[9px] font-normal text-gray-300">{sub}</div>}
                   </th>
