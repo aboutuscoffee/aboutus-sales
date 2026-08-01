@@ -156,14 +156,15 @@ export default function Dashboard({ navigate, store }) {
         : (isHol ? config?.holiday_budget : config?.weekday_budget) || 0;
       const sales = rep.sales || 0;
       const isFuture = dateStr > todayStr;
-      if (!isFuture) { cumSales += sales; cumBudget += budget; }
+      cumBudget += budget;
+      if (!isFuture) { cumSales += sales; }
       const dayRate = budget > 0 ? Math.round(sales / budget * 100) : null;
       const cumRate = cumBudget > 0 ? (cumSales / cumBudget * 100).toFixed(1) : null;
       const diff = cumSales - cumBudget;
       return {
         d, dateStr, dow, isHol, rep, budget, sales,
         cumSales: isFuture ? null : cumSales,
-        cumBudget: isFuture ? null : cumBudget,
+        cumBudget,
         dayRate, cumRate, diff: isFuture ? null : diff, isFuture,
       };
     });
