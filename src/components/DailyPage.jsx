@@ -41,6 +41,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
   const [legacy, setLegacy] = useState(null);
   const [staffChecks, setStaffChecks] = useState({});
   const [staffComments, setStaffComments] = useState({});
+  const [closed, setClosed] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,6 +59,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
       setProductsList(prods);
       const r = reps[date];
       if (r) {
+        setClosed(!!r.closed);
         setForm({
           sales: r.sales ?? "",
           drink_count: r.drink_count ?? "",
@@ -81,6 +83,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
         setStaffChecks(checks);
         setStaffComments(r.staff_comments || {});
       } else {
+        setClosed(false);
         setForm({ sales:"", drink_count:"", weather:"", diary:"", good_points:"", handover:"", comment:"" });
         setBeanQty({});
         setLegacy(null);
@@ -131,16 +134,17 @@ export default function DailyPage({ navigate, searchParams, store }) {
       const checkFields = {};
       storeStaff.forEach(name => { checkFields[STAFF_KEYS[name]] = !!staffChecks[name]; });
       await upsertDayReport(date, {
-        sales: form.sales === "" ? null : Number(form.sales),
-        drink_count: form.drink_count === "" ? null : Number(form.drink_count),
+        closed,
+        sales: closed ? null : (form.sales === "" ? null : Number(form.sales)),
+        drink_count: closed ? null : (form.drink_count === "" ? null : Number(form.drink_count)),
         weather: form.weather || null,
         diary: form.diary,
         good_points: form.good_points,
         handover: form.handover,
         comment: form.comment,
-        bean_sales: beanEntries,
-        bean_qty: beanTotalQty,
-        bean_amount: beanTotalAmount,
+        bean_sales: closed ? [] : beanEntries,
+        bean_qty: closed ? 0 : beanTotalQty,
+        bean_amount: closed ? 0 : beanTotalAmount,
         staff_comments: staffComments,
         ...checkFields,
       }, store);
@@ -177,8 +181,29 @@ export default function DailyPage({ navigate, searchParams, store }) {
         <div className="text-center text-gray-400 text-sm py-10">読み込み中...</div>
       ) : (
         <>
-          {/* 売上データ + 天気 */}
+          {/* 休業日トグル */}
           <div className="bg-white rounded-xl border p-3 mb-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-gray-700">🔴 休業日</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">ONにすると売上¥0・予算¥0で登録されます</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setClosed(v => !v)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${closed ? "bg-amber-500" : "bg-gray-200"}`}>
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${closed ? "translate-x-5" : ""}`}/>
+              </button>
+            </div>
+            {closed && (
+              <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                休業日として登録します。予算 ¥0・売上データなし。
+              </p>
+            )}
+          </div>
+
+          {/* 売上データ + 天気 */}
+          <div className={`bg-white rounded-xl border p-3 mb-3 ${closed ? "opacity-40 pointer-events-none" : ""}`}>
             <p className="text-xs font-semibold text-gray-600 mb-2">売上データ</p>
             <div className="grid grid-cols-2 gap-2 mb-3">
               {[{k:"sales",l:"売上 (¥)"},{k:"drink_count",l:"ドリンク杯数"}].map(({k,l}) => (
@@ -203,7 +228,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
           </div>
 
           {/* 豆販売 */}
-          <div className="bg-white rounded-xl border p-3 mb-3">
+          <div className={`bg-white rounded-xl border p-3 mb-3 ${closed ? "opacity-40 pointer-events-none" : ""}`}>
             <p className="text-xs font-semibold text-gray-600 mb-2">豆販売(種類ごとに開いて個数を入力)</p>
             {products.length === 0 ? (
               <p className="text-xs text-gray-400">商品が登録されていません。管理画面の「豆商品登録」から登録してください。</p>

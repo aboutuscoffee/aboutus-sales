@@ -46,15 +46,15 @@ function CardView({ rows, todayStr, navigate, toggleCheck, staffKeys }) {
         const dowStr = DAYS_JA[row.dow];
         return (
           <div key={row.dateStr}
-            className={`bg-white rounded-xl border p-3 ${row.isFuture ? "opacity-30" : ""} ${isToday ? "border-[#1e3a5f] bg-blue-50" : ""}`}>
+            className={`bg-white rounded-xl border p-3 ${row.isFuture ? "opacity-30" : ""} ${row.isClosed ? "bg-amber-50 border-amber-200" : ""} ${isToday ? "border-[#1e3a5f] bg-blue-50" : ""}`}>
             <div className="flex items-start justify-between gap-2">
               <div className="shrink-0 w-16">
                 <p className={`text-sm font-bold ${row.isHol ? "text-red-500" : "text-gray-800"}`}>
                   {String(row.d).padStart(2,"0")}日/{dowStr}
                   {row.rep.weather && <span className="ml-0.5 text-[12px]">{WEATHER_ICON[row.rep.weather]}</span>}
                 </p>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${row.isHol ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
-                  {row.isHol ? "休日" : "平日"}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${row.isClosed ? "bg-amber-100 text-amber-700" : row.isHol ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
+                  {row.isClosed ? "休業" : row.isHol ? "休日" : "平日"}
                 </span>
               </div>
 
@@ -151,21 +151,23 @@ export default function Dashboard({ navigate, store }) {
       const dow = new Date(dateStr).getDay();
       const isHol = dow === 0 || dow === 6;
       const rep = reports[dateStr] || {};
-      const budget = rep.budget != null && rep.budget !== ""
-        ? rep.budget
-        : (isHol ? config?.holiday_budget : config?.weekday_budget) || 0;
+      const isClosed = !!rep.closed;
+      const budget = isClosed ? 0
+        : rep.budget != null && rep.budget !== ""
+          ? rep.budget
+          : (isHol ? config?.holiday_budget : config?.weekday_budget) || 0;
       const sales = rep.sales || 0;
       const isFuture = dateStr > todayStr;
       cumBudget += budget;
-      if (!isFuture) { cumSales += sales; }
-      const dayRate = budget > 0 ? Math.round(sales / budget * 100) : null;
+      if (!isFuture && !isClosed) { cumSales += sales; }
+      const dayRate = !isClosed && budget > 0 ? Math.round(sales / budget * 100) : null;
       const cumRate = cumBudget > 0 ? (cumSales / cumBudget * 100).toFixed(1) : null;
       const diff = cumSales - cumBudget;
       return {
-        d, dateStr, dow, isHol, rep, budget, sales,
-        cumSales: isFuture ? null : cumSales,
+        d, dateStr, dow, isHol, isClosed, rep, budget, sales,
+        cumSales: (isFuture || isClosed) ? null : cumSales,
         cumBudget,
-        dayRate, cumRate, diff: isFuture ? null : diff, isFuture,
+        dayRate, cumRate, diff: (isFuture || isClosed) ? null : diff, isFuture,
       };
     });
   }, [days, year, month, reports, config, todayStr]);
@@ -187,7 +189,7 @@ export default function Dashboard({ navigate, store }) {
   }, [rows, config]);
 
   const kpi = useMemo(() => {
-    const actual = rows.filter(r => !r.isFuture);
+    const actual = rows.filter(r => !r.isFuture && !r.isClosed);
     const totalSales    = actual.reduce((s, r) => s + r.sales, 0);
     const totalBudget   = actual.reduce((s, r) => s + r.budget, 0);
     const totalBean     = actual.reduce((s, r) => s + (r.rep.bean_qty || 0), 0);
@@ -296,7 +298,7 @@ export default function Dashboard({ navigate, store }) {
             <tbody>
               {rows.map(row => {
                 const isToday = row.dateStr === todayStr;
-                const rowCls = `border-b ${row.isFuture ? "opacity-30" : ""} ${isToday ? "bg-blue-50" : ""}`;
+                const rowCls = `border-b ${row.isFuture ? "opacity-30" : ""} ${row.isClosed ? "bg-amber-50" : ""} ${isToday ? "bg-blue-50" : ""}`;
                 const dowStr = DAYS_JA[row.dow];
                 const isWknd = row.isHol;
                 return (
@@ -310,9 +312,13 @@ export default function Dashboard({ navigate, store }) {
                       )}
                     </td>
                     <td className="px-1.5 py-1 text-center">
-                      <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${isWknd ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
-                        {isWknd ? "休" : "平"}
-                      </span>
+                      {row.isClosed ? (
+                        <span className="px-1 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">休業</span>
+                      ) : (
+                        <span className={`px-1 py-0.5 rounded text-[10px] font-medium ${isWknd ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"}`}>
+                          {isWknd ? "休" : "平"}
+                        </span>
+                      )}
                     </td>
                     <td className="px-1.5 py-1 text-right">
                       <div>{row.sales > 0 ? `¥${fmt(row.sales)}` : "—"}</div>
