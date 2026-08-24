@@ -108,6 +108,7 @@ export default function Dashboard({ navigate, store }) {
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [config, setConfig] = useState(null);
   const [reports, setReports] = useState({});
+  const [lastYearReports, setLastYearReports] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [view, setView] = useState(
@@ -125,12 +126,14 @@ export default function Dashboard({ navigate, store }) {
     setLoading(true);
     setError(null);
     try {
-      const [cfg, reps] = await Promise.all([
+      const [cfg, reps, lastReps] = await Promise.all([
         getBudgetConfig(year, month, store),
         getMonthReports(year, month, store),
+        getMonthReports(year - 1, month, store),
       ]);
       setConfig(cfg);
       setReports(reps);
+      setLastYearReports(lastReps);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -173,20 +176,25 @@ export default function Dashboard({ navigate, store }) {
   }, [days, year, month, reports, config, todayStr]);
 
   const chartData = useMemo(() => {
-    let paceCum = 0;
+    let paceCum = 0, lastCum = 0;
+    const lastDays = daysInMonth(year - 1, month);
     return rows.map(r => {
       const dayBudget = r.isHol
         ? (config?.holiday_budget || 0)
         : (config?.weekday_budget || 0);
       paceCum += dayBudget;
+      const lastDateStr = toDateStr(year - 1, month, r.d);
+      const lastRep = r.d <= lastDays ? (lastYearReports[lastDateStr] || {}) : null;
+      if (lastRep && !lastRep.closed) lastCum += lastRep.sales || 0;
       return {
         day: r.d,
         累計売上: r.isFuture ? null : r.cumSales,
         累計予算: r.isFuture ? null : r.cumBudget,
         目標ペース: paceCum,
+        昨年同月: lastRep != null ? lastCum : null,
       };
     });
-  }, [rows, config]);
+  }, [rows, config, lastYearReports, year, month]);
 
   const kpi = useMemo(() => {
     const actual = rows.filter(r => !r.isFuture && !r.isClosed);
@@ -263,6 +271,7 @@ export default function Dashboard({ navigate, store }) {
                 <Line type="monotone" dataKey="累計売上" stroke="#2563eb" strokeWidth={2} dot={false}/>
                 <Line type="monotone" dataKey="累計予算" stroke="#10b981" strokeWidth={1.5} strokeDasharray="4 4" dot={false}/>
                 <Line type="monotone" dataKey="目標ペース" stroke="#f97316" strokeWidth={1.5} strokeDasharray="2 3" dot={false}/>
+                <Line type="monotone" dataKey="昨年同月" stroke="#a855f7" strokeWidth={1.5} strokeDasharray="3 3" dot={false}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
