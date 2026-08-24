@@ -221,7 +221,8 @@ export default function Dashboard({ navigate, store }) {
   );
 
   return (
-    <div className="flex-1 overflow-auto p-3">
+    <div className="flex flex-col flex-1 min-h-0">
+      <div className="flex-1 overflow-auto p-3">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2 mb-3">
           データの読み込みに失敗しました: {error}
@@ -373,20 +374,24 @@ export default function Dashboard({ navigate, store }) {
         <CardView rows={rows} todayStr={todayStr} navigate={navigate} toggleCheck={toggleCheck} staffKeys={staffKeys}/>
       )}
 
-      <div className="grid grid-cols-3 gap-2 mb-2">
-        {[
-          {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-[#1e3a5f]"},
-          {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                        c:"text-gray-700"},
-          {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                c:kpi.rate>=100?"text-[#1e3a5f]":"text-red-500"},
-          {l:"豆販売(個)",  v:fmt(kpi.totalBean)||"—",                           c:"text-gray-700"},
-          {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—", c:"text-gray-700"},
-          {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                          c:"text-gray-700"},
-        ].map(({l,v,c},i) => (
-          <div key={i} className="bg-white rounded-xl border p-2 text-center">
-            <p className="text-gray-400 text-[10px]">{l}</p>
-            <p className={`font-bold text-sm ${c}`}>{v}</p>
-          </div>
-        ))}
+      </div>
+
+      <div className="shrink-0 bg-gray-50 border-t px-3 py-2">
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-[#1e3a5f]"},
+            {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                        c:"text-gray-700"},
+            {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                c:kpi.rate>=100?"text-[#1e3a5f]":"text-red-500"},
+            {l:"豆販売(個)",  v:fmt(kpi.totalBean)||"—",                           c:"text-gray-700"},
+            {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—", c:"text-gray-700"},
+            {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                          c:"text-gray-700"},
+          ].map(({l,v,c},i) => (
+            <div key={i} className="bg-white rounded-xl border p-2 text-center">
+              <p className="text-gray-400 text-[10px]">{l}</p>
+              <p className={`font-bold text-sm ${c}`}>{v}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
