@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ReferenceLine, ResponsiveContainer, Legend,
 } from "recharts";
 import { getMonthReports, getBudgetConfig, upsertDayReport } from "../lib/db.js";
@@ -181,12 +181,15 @@ export default function Dashboard({ navigate, store }) {
     return rows.map(r => {
       const lastDateStr = toDateStr(year - 1, month, r.d);
       const lastRep = r.d <= lastDays ? (lastYearReports[lastDateStr] || {}) : null;
-      if (lastRep && !lastRep.closed) lastCum += lastRep.sales || 0;
+      const lastSales = lastRep && !lastRep.closed ? (lastRep.sales || 0) : 0;
+      if (lastRep) lastCum += lastSales;
       return {
         day: r.d,
         累計売上: r.isFuture ? null : r.cumSales,
         累計予算: r.isFuture ? null : r.cumBudget,
-        昨年同月: lastRep != null ? lastCum : null,
+        昨年同月累計: lastRep != null ? lastCum : null,
+        今年日別: r.isFuture ? null : r.sales,
+        昨年日別: lastRep != null ? lastSales : null,
       };
     });
   }, [rows, config, lastYearReports, year, month]);
@@ -280,20 +283,23 @@ export default function Dashboard({ navigate, store }) {
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-gray-600 mb-2">月次累計チャート</p>
             <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
+              <ComposedChart data={chartData} margin={{top:4,right:8,left:0,bottom:0}}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
                 <XAxis dataKey="day" tick={{fontSize:9}} tickFormatter={v=>`${v}日`}/>
-                <YAxis tick={{fontSize:9}} tickFormatter={v=>`${(v/10000).toFixed(0)}万`} width={38}/>
-                <Tooltip formatter={(v)=>`¥${fmt(v)}`} labelFormatter={v=>`${v}日`}/>
+                <YAxis yAxisId="cum" tick={{fontSize:9}} tickFormatter={v=>`${(v/10000).toFixed(0)}万`} width={38}/>
+                <YAxis yAxisId="day" orientation="right" tick={false} axisLine={false} tickLine={false}/>
+                <Tooltip formatter={(v,name)=> name.includes('日別') ? `¥${fmt(v)}` : `¥${fmt(v)}`} labelFormatter={v=>`${v}日`}/>
                 <Legend wrapperStyle={{fontSize:10}}/>
                 {config?.target && (
-                  <ReferenceLine y={config.target} stroke="#f59e0b" strokeDasharray="4 4"
+                  <ReferenceLine yAxisId="cum" y={config.target} stroke="#f59e0b" strokeDasharray="4 4"
                     label={{value:"目標",fontSize:9,fill:"#f59e0b"}}/>
                 )}
-                <Line type="monotone" dataKey="累計売上" stroke="#2563eb" strokeWidth={2} dot={false}/>
-                <Line type="monotone" dataKey="累計予算" stroke="#10b981" strokeWidth={1.5} strokeDasharray="4 4" dot={false}/>
-                <Line type="monotone" dataKey="昨年同月" stroke="#a855f7" strokeWidth={1.5} strokeDasharray="3 3" dot={false}/>
-              </LineChart>
+                <Bar yAxisId="day" dataKey="昨年日別" fill="#e2e8f0" radius={[2,2,0,0]} maxBarSize={12}/>
+                <Bar yAxisId="day" dataKey="今年日別" fill="#93c5fd" radius={[2,2,0,0]} maxBarSize={12}/>
+                <Line yAxisId="cum" type="monotone" dataKey="累計売上" stroke="#2563eb" strokeWidth={2.5} dot={false}/>
+                <Line yAxisId="cum" type="monotone" dataKey="累計予算" stroke="#10b981" strokeWidth={1.5} strokeDasharray="4 4" dot={false}/>
+                <Line yAxisId="cum" type="monotone" dataKey="昨年同月累計" stroke="#a855f7" strokeWidth={1.5} strokeDasharray="3 3" dot={false}/>
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
           <div className="sm:w-44 shrink-0 flex sm:flex-col gap-3 sm:border-l sm:pl-4 sm:justify-center">
