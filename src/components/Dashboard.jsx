@@ -412,8 +412,8 @@ export default function Dashboard({ navigate, store }) {
 
       </div>
 
-      <div className="shrink-0 bg-gray-50 border-t px-3 py-2">
-        <div className="grid grid-cols-3 gap-2">
+      <div className="shrink-0 bg-gray-50 border-t px-2 py-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {[
             {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-[#1e3a5f]", yoy:kpi.yoySales,   fmt:(d)=>`¥${fmt(Math.abs(d))}`},
             {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                        c:"text-gray-700",  yoy:null},
@@ -422,12 +422,12 @@ export default function Dashboard({ navigate, store }) {
             {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—", c:"text-gray-700",  yoy:kpi.yoyBeanAmt, fmt:(d)=>`¥${fmt(Math.abs(d))}`},
             {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                          c:"text-gray-700",  yoy:kpi.yoyDrink,   fmt:(d)=>`${Math.abs(d)}杯`},
           ].map(({l,v,c,yoy,fmt:yoyFmt},i) => (
-            <div key={i} className="bg-white rounded-xl border p-2 text-center">
-              <p className="text-gray-400 text-[10px]">{l}</p>
-              <p className={`font-bold text-sm ${c}`}>{v}</p>
+            <div key={i} className="bg-white rounded-lg border px-1 py-1 text-center">
+              <p className="text-gray-400 text-[9px] leading-tight">{l}</p>
+              <p className={`font-bold text-xs leading-tight ${c}`}>{v}</p>
               {yoy && (
-                <p className={`text-[9px] mt-0.5 ${yoy.diff >= 0 ? "text-blue-400" : "text-red-400"}`}>
-                  {yoy.diff >= 0 ? "↑" : "↓"} {yoyFmt(yoy.diff)} ({yoy.diff >= 0 ? "+" : "-"}{Math.abs(yoy.pct)}%)
+                <p className={`text-[8px] leading-tight ${yoy.diff >= 0 ? "text-blue-400" : "text-red-400"}`}>
+                  {yoy.diff >= 0 ? "↑" : "↓"}{yoyFmt(yoy.diff)} ({yoy.diff >= 0 ? "+" : "-"}{Math.abs(yoy.pct)}%)
                 </p>
               )}
             </div>
