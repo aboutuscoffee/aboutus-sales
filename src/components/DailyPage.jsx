@@ -319,7 +319,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
             <p className="text-xs font-semibold text-gray-600">日報</p>
             {[
               {k:"diary",       l:"☀️ 一日の様子", rows:4},
-              {k:"good_points", l:"🔄 改善点・気になったこと・試してみたいことがあれば記入", rows:2},
+              {k:"good_points", l:"🔄 改善点・注意点・やってみたいこと", rows:2},
               {k:"handover",    l:"📋 引き継ぎ",   rows:3},
               {k:"comment",     l:"💬 備考",       rows:2},
             ].map(({k,l,rows}) => (

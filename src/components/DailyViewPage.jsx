@@ -41,7 +41,7 @@ export default function DailyViewPage({ navigate, searchParams, store }) {
 
   const diaryFields = [
     {k:"diary",       l:"☀️ 一日の様子"},
-    {k:"good_points", l:"🔄 振り返り"},
+    {k:"good_points", l:"🔄 改善点・注意点・やってみたいこと"},
     {k:"handover",    l:"📋 引き継ぎ"},
     {k:"comment",     l:"💬 備考"},
   ];
