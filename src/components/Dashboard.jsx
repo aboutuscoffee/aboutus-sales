@@ -198,14 +198,41 @@ export default function Dashboard({ navigate, store }) {
 
   const kpi = useMemo(() => {
     const actual = rows.filter(r => !r.isFuture && !r.isClosed);
-    const totalSales    = actual.reduce((s, r) => s + r.sales, 0);
-    const totalBudget   = actual.reduce((s, r) => s + r.budget, 0);
-    const totalBean     = actual.reduce((s, r) => s + (r.rep.bean_qty || 0), 0);
-    const totalBeanAmt  = actual.reduce((s, r) => s + (r.rep.bean_amount || 0), 0);
-    const totalDrink    = actual.reduce((s, r) => s + (r.rep.drink_count || 0), 0);
+    const totalSales   = actual.reduce((s, r) => s + r.sales, 0);
+    const totalBudget  = actual.reduce((s, r) => s + r.budget, 0);
+    const totalBean    = actual.reduce((s, r) => s + (r.rep.bean_qty || 0), 0);
+    const totalBeanAmt = actual.reduce((s, r) => s + (r.rep.bean_amount || 0), 0);
+    const totalDrink   = actual.reduce((s, r) => s + (r.rep.drink_count || 0), 0);
     const rate = config?.target ? (totalSales / config.target * 100).toFixed(1) : null;
-    return { totalSales, totalBudget, totalBean, totalBeanAmt, totalDrink, rate };
-  }, [rows, config]);
+
+    // 昨年同期（同じ経過日数まで）
+    const lastDays = daysInMonth(year - 1, month);
+    let lySales = 0, lyBean = 0, lyBeanAmt = 0, lyDrink = 0;
+    actual.forEach(r => {
+      if (r.d > lastDays) return;
+      const lyDateStr = toDateStr(year - 1, month, r.d);
+      const ly = lastYearReports[lyDateStr] || {};
+      if (!ly.closed) {
+        lySales   += ly.sales || 0;
+        lyBean    += ly.bean_qty || 0;
+        lyBeanAmt += ly.bean_amount || 0;
+        lyDrink   += ly.drink_count || 0;
+      }
+    });
+    const yoy = (cur, ly) => {
+      if (!ly) return null;
+      const diff = cur - ly;
+      const pct = (diff / ly * 100).toFixed(1);
+      return { diff, pct };
+    };
+    return {
+      totalSales, totalBudget, totalBean, totalBeanAmt, totalDrink, rate,
+      yoySales:   yoy(totalSales,   lySales),
+      yoyBean:    yoy(totalBean,    lyBean),
+      yoyBeanAmt: yoy(totalBeanAmt, lyBeanAmt),
+      yoyDrink:   yoy(totalDrink,   lyDrink),
+    };
+  }, [rows, config, lastYearReports, year, month]);
 
   const toggleCheck = async (dateStr, key) => {
     const rep = reports[dateStr] || {};
@@ -388,16 +415,21 @@ export default function Dashboard({ navigate, store }) {
       <div className="shrink-0 bg-gray-50 border-t px-3 py-2">
         <div className="grid grid-cols-3 gap-2">
           {[
-            {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-[#1e3a5f]"},
-            {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                        c:"text-gray-700"},
-            {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                c:kpi.rate>=100?"text-[#1e3a5f]":"text-red-500"},
-            {l:"豆販売(個)",  v:fmt(kpi.totalBean)||"—",                           c:"text-gray-700"},
-            {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—", c:"text-gray-700"},
-            {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                          c:"text-gray-700"},
-          ].map(({l,v,c},i) => (
+            {l:"累計売上",    v:`¥${fmt(kpi.totalSales)}`,                         c:"text-[#1e3a5f]", yoy:kpi.yoySales,   fmt:(d)=>`¥${fmt(Math.abs(d))}`},
+            {l:"累計予算",    v:`¥${fmt(kpi.totalBudget)}`,                        c:"text-gray-700",  yoy:null},
+            {l:"目標達成率",  v:kpi.rate!=null?`${kpi.rate}%`:"—",                c:kpi.rate>=100?"text-[#1e3a5f]":"text-red-500", yoy:null},
+            {l:"豆販売(個)",  v:fmt(kpi.totalBean)||"—",                           c:"text-gray-700",  yoy:kpi.yoyBean,    fmt:(d)=>`${Math.abs(d)}個`},
+            {l:"豆販売金額",  v:kpi.totalBeanAmt?`¥${fmt(kpi.totalBeanAmt)}`:"—", c:"text-gray-700",  yoy:kpi.yoyBeanAmt, fmt:(d)=>`¥${fmt(Math.abs(d))}`},
+            {l:"ドリンク杯数",v:fmt(kpi.totalDrink)||"—",                          c:"text-gray-700",  yoy:kpi.yoyDrink,   fmt:(d)=>`${Math.abs(d)}杯`},
+          ].map(({l,v,c,yoy,fmt:yoyFmt},i) => (
             <div key={i} className="bg-white rounded-xl border p-2 text-center">
               <p className="text-gray-400 text-[10px]">{l}</p>
               <p className={`font-bold text-sm ${c}`}>{v}</p>
+              {yoy && (
+                <p className={`text-[9px] mt-0.5 ${yoy.diff >= 0 ? "text-blue-400" : "text-red-400"}`}>
+                  {yoy.diff >= 0 ? "↑" : "↓"} {yoyFmt(yoy.diff)} ({yoy.diff >= 0 ? "+" : "-"}{Math.abs(yoy.pct)}%)
+                </p>
+              )}
             </div>
           ))}
         </div>
