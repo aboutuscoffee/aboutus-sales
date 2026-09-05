@@ -104,19 +104,38 @@ export default function DailyViewPage({ navigate, searchParams, store }) {
             </div>
           )}
 
-          {rep.staff_comments && Object.keys(rep.staff_comments).length > 0 && (
-            <div className="bg-white rounded-xl border p-3 mb-3">
-              <p className="text-xs font-semibold text-gray-600 mb-2">スタッフ評価</p>
-              <div className="space-y-1.5">
-                {Object.entries(rep.staff_comments).filter(([,v])=>v).map(([name, comment]) => (
-                  <div key={name} className="flex gap-2 text-sm">
-                    <span className="text-xs font-medium text-[#1e3a5f] w-12 shrink-0">{name}</span>
-                    <span className="text-gray-700 text-xs">{comment}</span>
-                  </div>
-                ))}
+          {rep.staff_comments && Object.keys(rep.staff_comments).length > 0 && (() => {
+            const entries = Object.entries(rep.staff_comments).filter(([,v]) => {
+              if (!v) return false;
+              if (typeof v === "string") return !!v;
+              return Array.isArray(v) && v.some(e => e.text);
+            });
+            if (entries.length === 0) return null;
+            return (
+              <div className="bg-white rounded-xl border p-3 mb-3">
+                <p className="text-xs font-semibold text-gray-600 mb-2">スタッフ評価</p>
+                <div className="space-y-2.5">
+                  {entries.map(([name, val]) => (
+                    <div key={name}>
+                      <p className="text-xs font-semibold text-[#1e3a5f] mb-0.5">{name}</p>
+                      {typeof val === "string" ? (
+                        <p className="text-xs text-gray-700 pl-2">{val}</p>
+                      ) : (
+                        <div className="space-y-0.5 pl-2">
+                          {val.filter(e => e.text).map((e, i) => (
+                            <div key={i} className="flex gap-1.5 text-xs text-gray-700">
+                              {e.author && <span className="font-medium text-gray-500 shrink-0">{e.author}：</span>}
+                              <span>{e.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {diaryFields.map(({k,l}) => rep[k] ? (
             <div key={k} className="bg-white rounded-xl border p-3 mb-3">

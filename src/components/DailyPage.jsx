@@ -45,6 +45,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [beanSearch, setBeanSearch] = useState('');
 
   const storeStaff = STAFF_BY_STORE[store] || STAFF_BY_STORE.nijo;
 
@@ -81,7 +82,15 @@ export default function DailyPage({ navigate, searchParams, store }) {
         const checks = {};
         storeStaff.forEach(name => { checks[name] = !!r[STAFF_KEYS[name]]; });
         setStaffChecks(checks);
-        setStaffComments(r.staff_comments || {});
+        const raw = r.staff_comments || {};
+        const normalized = {};
+        storeStaff.forEach(name => {
+          const v = raw[name];
+          if (!v) normalized[name] = [];
+          else if (typeof v === "string") normalized[name] = v ? [{author:"", text:v}] : [];
+          else normalized[name] = v;
+        });
+        setStaffComments(normalized);
       } else {
         setClosed(false);
         setForm({ sales:"", drink_count:"", weather:"", diary:"", good_points:"", handover:"", comment:"" });
@@ -90,7 +99,9 @@ export default function DailyPage({ navigate, searchParams, store }) {
         const checks = {};
         storeStaff.forEach(name => { checks[name] = false; });
         setStaffChecks(checks);
-        setStaffComments({});
+        const empty = {};
+        storeStaff.forEach(name => { empty[name] = []; });
+        setStaffComments(empty);
       }
     } catch (e) {
       setError(e.message);
@@ -234,41 +245,57 @@ export default function DailyPage({ navigate, searchParams, store }) {
               <p className="text-xs text-gray-400">商品が登録されていません。管理画面の「豆商品登録」から登録してください。</p>
             ) : (
               <div className="space-y-3">
-                {TIER_ORDER.filter(tier => tieredGroups[tier]).map(tier => (
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none">🔍</span>
+                  <input
+                    type="search"
+                    value={beanSearch}
+                    onChange={e => setBeanSearch(e.target.value)}
+                    placeholder="豆名で絞り込み…"
+                    className="w-full border rounded-lg pl-7 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] bg-gray-50"
+                  />
+                </div>
+                {TIER_ORDER.filter(tier => {
+                  if (!tieredGroups[tier]) return false;
+                  if (!beanSearch) return true;
+                  return tieredGroups[tier].some(({ name }) => name.toLowerCase().includes(beanSearch.toLowerCase()));
+                }).map(tier => (
                   <div key={tier}>
                     <p className="text-[11px] font-bold text-gray-400 mb-1 px-0.5">{tier}</p>
-                    <div className="space-y-1.5">
-                      {tieredGroups[tier].map(({ name, variants }) => {
-                        const groupQty = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0), 0);
-                        const groupAmount = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0) * p.price, 0);
-                        const isOpen = !!expanded[name];
-                        return (
-                          <div key={name} className="border rounded-lg overflow-hidden">
-                            <button type="button" onClick={() => toggleExpand(name)}
-                              className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 text-sm">
-                              <span className="font-medium flex items-center gap-1.5 text-left">
-                                <span className={`inline-block transition-transform text-gray-400 shrink-0 ${isOpen ? "rotate-90" : ""}`}>▶</span>
-                                {name}
-                              </span>
-                              <span className={`text-xs font-semibold shrink-0 ml-2 ${groupAmount > 0 ? "text-[#1e3a5f]" : "text-gray-400"}`}>
-                                {groupQty}個 / ¥{fmt(groupAmount)}
-                              </span>
-                            </button>
-                            {isOpen && (
-                              <div className="px-3 py-2 space-y-1.5 bg-white">
-                                {variants.map(p => (
-                                  <div key={p.id} className="flex items-center gap-2">
-                                    <span className="flex-1 text-xs text-gray-600">{p.grams}g <span className="text-gray-400">(¥{fmt(p.price)})</span></span>
-                                    <input type="number" min="0" value={beanQty[p.id] || ""} placeholder="0"
-                                      onChange={e => setBeanQty(b => ({...b, [p.id]: e.target.value}))}
-                                      className="w-16 border rounded px-1.5 py-1 text-xs text-right focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {tieredGroups[tier]
+                        .filter(({ name }) => !beanSearch || name.toLowerCase().includes(beanSearch.toLowerCase()))
+                        .map(({ name, variants }) => {
+                          const groupQty = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0), 0);
+                          const groupAmount = variants.reduce((s,p) => s + (Number(beanQty[p.id]) || 0) * p.price, 0);
+                          const isOpen = !!expanded[name];
+                          return (
+                            <div key={name} className={`border rounded-lg overflow-hidden ${isOpen ? "col-span-2 border-[#1e3a5f]" : groupQty > 0 ? "border-blue-300" : ""}`}>
+                              <button type="button" onClick={() => toggleExpand(name)}
+                                className="w-full flex items-center justify-between px-2.5 py-2 bg-gray-50 hover:bg-gray-100 text-sm">
+                                <span className="font-medium flex items-center gap-1 text-left min-w-0">
+                                  <span className={`inline-block transition-transform text-gray-400 shrink-0 text-[9px] ${isOpen ? "rotate-90" : ""}`}>▶</span>
+                                  <span className={`text-xs truncate ${isOpen ? "whitespace-normal" : ""}`}>{name}</span>
+                                </span>
+                                <span className={`text-[11px] font-semibold shrink-0 ml-1 ${groupAmount > 0 ? "text-[#1e3a5f]" : "text-gray-400"}`}>
+                                  {groupQty > 0 ? `${groupQty}個` : ""}
+                                </span>
+                              </button>
+                              {isOpen && (
+                                <div className="px-3 py-2 space-y-1.5 bg-white">
+                                  {variants.map(p => (
+                                    <div key={p.id} className="flex items-center gap-2">
+                                      <span className="flex-1 text-xs text-gray-600">{p.grams}g <span className="text-gray-400">(¥{fmt(p.price)})</span></span>
+                                      <input type="number" min="0" value={beanQty[p.id] || ""} placeholder="0"
+                                        onChange={e => setBeanQty(b => ({...b, [p.id]: e.target.value}))}
+                                        className="w-16 border rounded px-1.5 py-1 text-xs text-right focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
                 ))}
@@ -290,24 +317,73 @@ export default function DailyPage({ navigate, searchParams, store }) {
             <div className="flex gap-2 flex-wrap mb-3">
               {storeStaff.map(name => (
                 <button key={name} type="button"
-                  onClick={() => setStaffChecks(c => ({...c, [name]: !c[name]}))}
+                  onClick={() => {
+                    const next = !staffChecks[name];
+                    setStaffChecks(c => ({...c, [name]: next}));
+                    if (next && (!staffComments[name] || staffComments[name].length === 0)) {
+                      setStaffComments(c => ({...c, [name]: [{author:"", text:""}]}));
+                    }
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition ${staffChecks[name] ? "bg-[#1e3a5f] text-white border-[#1e3a5f]" : "bg-white text-gray-600"}`}>
                   {name}
                 </button>
               ))}
             </div>
             {checkedStaff.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-[11px] text-gray-400">良かった動き・コメント（出勤者が各自記入）</p>
-                {checkedStaff.map(name => (
-                  <div key={name} className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-[#1e3a5f] w-12 shrink-0">{name}</span>
-                    <input type="text" value={staffComments[name] || ""}
-                      onChange={e => setStaffComments(c => ({...c, [name]: e.target.value}))}
-                      placeholder="例: 接客の対応が丁寧だった"
-                      className="flex-1 border rounded px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]"/>
-                  </div>
-                ))}
+              <div className="space-y-3">
+                <p className="text-[11px] text-gray-400">スタッフへのコメント（複数人が書けます）</p>
+                {checkedStaff.map(name => {
+                  const entries = staffComments[name] || [];
+                  return (
+                    <div key={name}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-[#1e3a5f]">{name}</span>
+                        <button type="button"
+                          onClick={() => setStaffComments(c => ({...c, [name]: [...(c[name]||[]), {author:"", text:""}]}))}
+                          className="text-[10px] text-gray-400 border rounded px-1.5 py-0.5 hover:bg-gray-50">
+                          ＋ 追加
+                        </button>
+                      </div>
+                      <div className="space-y-1">
+                        {entries.map((entry, i) => (
+                          <div key={i} className="flex items-center gap-1.5">
+                            <input type="text" value={entry.author}
+                              onChange={e => setStaffComments(c => {
+                                const arr = [...(c[name]||[])];
+                                arr[i] = {...arr[i], author: e.target.value};
+                                return {...c, [name]: arr};
+                              })}
+                              placeholder="書いた人"
+                              className="w-16 border rounded px-1.5 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]"/>
+                            <input type="text" value={entry.text}
+                              onChange={e => setStaffComments(c => {
+                                const arr = [...(c[name]||[])];
+                                arr[i] = {...arr[i], text: e.target.value};
+                                return {...c, [name]: arr};
+                              })}
+                              placeholder="コメント"
+                              className="flex-1 border rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]"/>
+                            {entries.length > 1 && (
+                              <button type="button"
+                                onClick={() => setStaffComments(c => {
+                                  const arr = (c[name]||[]).filter((_,j) => j !== i);
+                                  return {...c, [name]: arr};
+                                })}
+                                className="text-gray-300 hover:text-red-400 text-sm px-1">×</button>
+                            )}
+                          </div>
+                        ))}
+                        {entries.length === 0 && (
+                          <button type="button"
+                            onClick={() => setStaffComments(c => ({...c, [name]: [{author:"", text:""}]}))}
+                            className="text-[11px] text-gray-400 border border-dashed rounded px-2 py-1 w-full hover:bg-gray-50">
+                            ＋ コメントを追加
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-xs text-gray-400">出勤者を選択するとコメント欄が表示されます</p>
