@@ -3,6 +3,7 @@ import Dashboard from "./components/Dashboard.jsx";
 import DailyPage from "./components/DailyPage.jsx";
 import DailyViewPage from "./components/DailyViewPage.jsx";
 import AdminPage from "./components/AdminPage.jsx";
+import StaffReviewPage from "./components/StaffReviewPage.jsx";
 
 const YOY_APP_URL = "https://aboutuscoffee.github.io/aboutus-sales-yoy/";
 
@@ -94,7 +95,8 @@ export default function App() {
       {page === ""           && <Dashboard     navigate={navigate} store={storeId}/>}
       {page === "daily"      && <DailyPage     navigate={navigate} searchParams={searchParams} store={storeId}/>}
       {page === "daily-view" && <DailyViewPage navigate={navigate} searchParams={searchParams} store={storeId}/>}
-      {page === "admin"      && <AdminPage     navigate={navigate} store={storeId}/>}
+      {page === "admin"         && <AdminPage        navigate={navigate} store={storeId}/>}
+      {page === "staff-review"  && <StaffReviewPage  navigate={navigate} store={storeId}/>}
     </div>
   );
 }

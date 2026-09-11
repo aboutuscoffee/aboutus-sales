@@ -21,7 +21,11 @@ export default function AdminPage({ navigate, store }) {
 
       {tab === "budget" ? <BudgetSettings store={store}/> : <BeanRegistration/>}
 
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col gap-2">
+        <button onClick={() => navigate("staff-review")}
+          className="border rounded-xl py-2.5 px-4 text-sm hover:bg-gray-50 text-left">
+          📋 スタッフ評価集計（月次）
+        </button>
         <button onClick={() => navigate("")} className="border rounded-xl py-2.5 px-4 text-sm hover:bg-gray-50">← ダッシュボードへ戻る</button>
       </div>
     </div>
