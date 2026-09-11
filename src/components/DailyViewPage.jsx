@@ -117,14 +117,14 @@ export default function DailyViewPage({ navigate, searchParams, store }) {
                 <div className="space-y-2.5">
                   {entries.map(([name, val]) => (
                     <div key={name}>
-                      <p className="text-xs font-semibold text-[#1e3a5f] mb-0.5">{name}</p>
+                      <p className="text-xs font-semibold text-[#1e3a5f] mb-0.5">To {name}</p>
                       {typeof val === "string" ? (
                         <p className="text-xs text-gray-700 pl-2">{val}</p>
                       ) : (
                         <div className="space-y-0.5 pl-2">
                           {val.filter(e => e.text).map((e, i) => (
                             <div key={i} className="flex gap-1.5 text-xs text-gray-700">
-                              {e.author && <span className="font-medium text-gray-500 shrink-0">{e.author}：</span>}
+                              {e.author && <span className="font-medium text-gray-400 shrink-0">From {e.author}：</span>}
                               <span>{e.text}</span>
                             </div>
                           ))}

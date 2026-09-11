@@ -337,7 +337,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
                   return (
                     <div key={name}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-[#1e3a5f]">{name}</span>
+                        <span className="text-xs font-semibold text-[#1e3a5f]">To {name}</span>
                         <button type="button"
                           onClick={() => setStaffComments(c => ({...c, [name]: [...(c[name]||[]), {author:"", text:""}]}))}
                           className="text-[10px] text-gray-400 border rounded px-1.5 py-0.5 hover:bg-gray-50">
@@ -347,14 +347,15 @@ export default function DailyPage({ navigate, searchParams, store }) {
                       <div className="space-y-1">
                         {entries.map((entry, i) => (
                           <div key={i} className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-gray-400 shrink-0">From</span>
                             <input type="text" value={entry.author}
                               onChange={e => setStaffComments(c => {
                                 const arr = [...(c[name]||[])];
                                 arr[i] = {...arr[i], author: e.target.value};
                                 return {...c, [name]: arr};
                               })}
-                              placeholder="書いた人"
-                              className="w-16 border rounded px-1.5 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]"/>
+                              placeholder="名前"
+                              className="w-14 border rounded px-1.5 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-[#1e3a5f]"/>
                             <input type="text" value={entry.text}
                               onChange={e => setStaffComments(c => {
                                 const arr = [...(c[name]||[])];
