@@ -40,8 +40,11 @@ function StoreSelector() {
 export default function App() {
   const storeId = new URLSearchParams(window.location.search).get("store");
 
-  const [page, setPage] = useState("");
-  const [searchParams, setSearchParams] = useState(new URLSearchParams());
+  const initParams = new URLSearchParams(window.location.search);
+  const [page, setPage] = useState(initParams.get("view") || "");
+  const [searchParams, setSearchParams] = useState(
+    initParams.get("date") ? new URLSearchParams(`date=${initParams.get("date")}`) : new URLSearchParams()
+  );
 
   const navigate = useCallback((path) => {
     const [p, q] = path.split("?");

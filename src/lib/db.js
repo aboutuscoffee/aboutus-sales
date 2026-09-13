@@ -90,3 +90,23 @@ export async function upsertBudgetConfig(y, m, config, store) {
     .upsert({ year: y, month: m, store_id: store, ...config }, { onConflict: 'year,month,store_id' });
   if (error) throw error;
 }
+
+// ─── Read By ────────────────────────────────────────────────────────
+
+export async function updateReadBy(dateStr, store, readBy) {
+  const { error } = await supabase
+    .from('sales_reports')
+    .upsert({ date: dateStr, store_id: store, read_by: readBy }, { onConflict: 'date,store_id' });
+  if (error) throw error;
+}
+
+export async function getDayReport(dateStr, store) {
+  const { data, error } = await supabase
+    .from('sales_reports')
+    .select('date, sales, diary, read_by, closed')
+    .eq('store_id', store)
+    .eq('date', dateStr)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
