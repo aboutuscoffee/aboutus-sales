@@ -96,7 +96,9 @@ export async function upsertBudgetConfig(y, m, config, store) {
 export async function updateReadBy(dateStr, store, readBy) {
   const { error } = await supabase
     .from('sales_reports')
-    .upsert({ date: dateStr, store_id: store, read_by: readBy }, { onConflict: 'date,store_id' });
+    .update({ read_by: readBy })
+    .eq('date', dateStr)
+    .eq('store_id', store);
   if (error) throw error;
 }
 
