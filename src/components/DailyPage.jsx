@@ -46,6 +46,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [beanSearch, setBeanSearch] = useState('');
+  const [otherEntries, setOtherEntries] = useState([]);
 
   const storeStaff = STAFF_BY_STORE[store] || STAFF_BY_STORE.nijo;
 
@@ -72,11 +73,17 @@ export default function DailyPage({ navigate, searchParams, store }) {
         });
         if (r.bean_sales && r.bean_sales.length > 0) {
           const map = {};
-          r.bean_sales.forEach(b => { map[b.product_id] = String(b.qty); });
+          const others = [];
+          r.bean_sales.forEach(b => {
+            if (b.product_id) map[b.product_id] = String(b.qty);
+            else others.push({ name: b.name || "", qty: String(b.qty || ""), amount: String(b.amount || "") });
+          });
           setBeanQty(map);
+          setOtherEntries(others);
           setLegacy(null);
         } else {
           setBeanQty({});
+          setOtherEntries([]);
           setLegacy(r.bean_qty ? { qty: r.bean_qty, amount: r.bean_amount } : null);
         }
         const checks = {};
@@ -95,6 +102,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
         setClosed(false);
         setForm({ sales:"", drink_count:"", weather:"", diary:"", good_points:"", handover:"", comment:"" });
         setBeanQty({});
+        setOtherEntries([]);
         setLegacy(null);
         const checks = {};
         storeStaff.forEach(name => { checks[name] = false; });
@@ -139,11 +147,23 @@ export default function DailyPage({ navigate, searchParams, store }) {
   const beanTotalQty = beanEntries.reduce((s,b) => s+b.qty, 0);
   const beanTotalAmount = beanEntries.reduce((s,b) => s+b.amount, 0);
 
+  const otherValid = otherEntries.filter(e => e.name.trim());
+  const otherTotalQty = otherValid.reduce((s,e) => s + (Number(e.qty) || 0), 0);
+  const otherTotalAmount = otherValid.reduce((s,e) => s + (Number(e.amount) || 0), 0);
+  const totalQty = beanTotalQty + otherTotalQty;
+  const totalAmount = beanTotalAmount + otherTotalAmount;
+
   const save = async () => {
     setError(null);
     try {
       const checkFields = {};
       storeStaff.forEach(name => { checkFields[STAFF_KEYS[name]] = !!staffChecks[name]; });
+      const otherBeanEntries = otherValid.map(e => ({
+        name: e.name.trim(),
+        qty: Number(e.qty) || 0,
+        amount: Number(e.amount) || 0,
+      }));
+      const allBeanEntries = [...beanEntries, ...otherBeanEntries];
       await upsertDayReport(date, {
         closed,
         sales: closed ? null : (form.sales === "" ? null : Number(form.sales)),
@@ -153,9 +173,9 @@ export default function DailyPage({ navigate, searchParams, store }) {
         good_points: form.good_points,
         handover: form.handover,
         comment: form.comment,
-        bean_sales: closed ? [] : beanEntries,
-        bean_qty: closed ? 0 : beanTotalQty,
-        bean_amount: closed ? 0 : beanTotalAmount,
+        bean_sales: closed ? [] : allBeanEntries,
+        bean_qty: closed ? 0 : totalQty,
+        bean_amount: closed ? 0 : totalAmount,
         staff_comments: staffComments,
         ...checkFields,
       }, store);
@@ -299,8 +319,47 @@ export default function DailyPage({ navigate, searchParams, store }) {
                     </div>
                   </div>
                 ))}
+                {/* Other セクション */}
+                <div>
+                  <p className="text-[11px] font-bold text-amber-600 mb-1 px-0.5">Other（オンライン豆など）</p>
+                  <div className="border border-amber-200 rounded-lg overflow-hidden bg-amber-50/40">
+                    {otherEntries.length > 0 && (
+                      <div className="grid grid-cols-[1fr_48px_64px_20px] gap-1 px-2 pt-1.5 pb-0.5">
+                        <span className="text-[9px] text-amber-600">商品名</span>
+                        <span className="text-[9px] text-amber-600">個数</span>
+                        <span className="text-[9px] text-amber-600">金額（¥）</span>
+                        <span/>
+                      </div>
+                    )}
+                    {otherEntries.map((e, i) => (
+                      <div key={i} className="grid grid-cols-[1fr_48px_64px_20px] gap-1 px-2 py-1 border-t border-amber-100">
+                        <input type="text" value={e.name}
+                          onChange={ev => setOtherEntries(arr => arr.map((x,j) => j===i ? {...x, name: ev.target.value} : x))}
+                          placeholder="商品名"
+                          className="border border-amber-200 rounded px-1.5 py-1 text-[11px] bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"/>
+                        <input type="number" value={e.qty}
+                          onChange={ev => setOtherEntries(arr => arr.map((x,j) => j===i ? {...x, qty: ev.target.value} : x))}
+                          placeholder="0" min="0"
+                          className="border border-amber-200 rounded px-1.5 py-1 text-[11px] text-right bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"/>
+                        <input type="number" value={e.amount}
+                          onChange={ev => setOtherEntries(arr => arr.map((x,j) => j===i ? {...x, amount: ev.target.value} : x))}
+                          placeholder="0" min="0"
+                          className="border border-amber-200 rounded px-1.5 py-1 text-[11px] text-right bg-white focus:outline-none focus:ring-1 focus:ring-amber-400"/>
+                        <button type="button"
+                          onClick={() => setOtherEntries(arr => arr.filter((_,j) => j!==i))}
+                          className="text-gray-300 hover:text-red-400 text-sm flex items-center justify-center">×</button>
+                      </div>
+                    ))}
+                    <button type="button"
+                      onClick={() => setOtherEntries(arr => [...arr, {name:"", qty:"", amount:""}])}
+                      className={`w-full text-amber-600 text-[11px] font-bold py-2 hover:bg-amber-50 ${otherEntries.length > 0 ? "border-t border-amber-100" : ""}`}>
+                      ＋ 追加
+                    </button>
+                  </div>
+                </div>
+
                 <div className="text-right text-sm font-bold pt-2 border-t">
-                  合計: {beanTotalQty}個 / ¥{fmt(beanTotalAmount)}
+                  合計: {totalQty}個 / ¥{fmt(totalAmount)}
                 </div>
               </div>
             )}
