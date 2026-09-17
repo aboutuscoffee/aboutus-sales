@@ -3,11 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
 
-// 古いサービスワーカーをすべて解除（SW によるキャッシュ問題を防ぐ）
+// 古いサービスワーカーのキャッシュを一掃する（新しい sw.js が activate 時に自己解除）
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (const reg of registrations) reg.unregister();
-  });
+  navigator.serviceWorker.register('/aboutus-sales/sw.js').catch(() => {});
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
