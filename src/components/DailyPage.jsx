@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getMonthReports, getProducts, upsertDayReport } from "../lib/db.js";
+import { getMonthReports, getProducts, upsertDayReport, getDayReport, updateReadBy } from "../lib/db.js";
 import { TIER_ORDER, buildTieredGroups } from "../lib/productUtils.js";
 
 const DAYS_JA = ["日","月","火","水","木","金","土"];
@@ -47,6 +47,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
   const [error, setError] = useState(null);
   const [beanSearch, setBeanSearch] = useState('');
   const [otherEntries, setOtherEntries] = useState([]);
+  const [writer, setWriter] = useState('');
 
   const storeStaff = STAFF_BY_STORE[store] || STAFF_BY_STORE.nijo;
 
@@ -104,6 +105,7 @@ export default function DailyPage({ navigate, searchParams, store }) {
         setBeanQty({});
         setOtherEntries([]);
         setLegacy(null);
+        setWriter('');
         const checks = {};
         storeStaff.forEach(name => { checks[name] = false; });
         setStaffChecks(checks);
@@ -180,6 +182,13 @@ export default function DailyPage({ navigate, searchParams, store }) {
         ...checkFields,
       }, store);
       setLegacy(null);
+      if (writer) {
+        const current = await getDayReport(date, store);
+        const currentReadBy = Array.isArray(current?.read_by) ? current.read_by : [];
+        if (!currentReadBy.includes(writer)) {
+          await updateReadBy(date, store, [...currentReadBy, writer]);
+        }
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
@@ -453,6 +462,14 @@ export default function DailyPage({ navigate, searchParams, store }) {
           {/* 日報テキスト */}
           <div className="bg-white rounded-xl border p-3 mb-3 space-y-3">
             <p className="text-xs font-semibold text-gray-600">日報</p>
+            <div>
+              <label className="text-xs text-gray-500 block mb-0.5">✏️ 記入者</label>
+              <select value={writer} onChange={e => setWriter(e.target.value)}
+                className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1e3a5f]">
+                <option value="">選択してください</option>
+                {storeStaff.map(name => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </div>
             {[
               {k:"diary",       l:"☀️ 一日の様子", rows:4},
               {k:"good_points", l:"🔄 改善点・注意点・やってみたいこと", rows:2},
