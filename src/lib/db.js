@@ -99,12 +99,18 @@ export async function upsertBudgetConfig(y, m, config, store) {
 // ─── Read By ────────────────────────────────────────────────────────
 
 export async function updateReadBy(dateStr, store, readBy) {
-  const { error } = await supabase
-    .from('sales_reports')
-    .update({ read_by: readBy })
-    .eq('date', dateStr)
-    .eq('store_id', store);
-  if (error) throw error;
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const res = await fetch(
+    `${url}/rest/v1/sales_reports?date=eq.${dateStr}&store_id=eq.${store}`,
+    {
+      method: 'PATCH',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ read_by: readBy }),
+      cache: 'no-store',
+    }
+  );
+  if (!res.ok) throw new Error(await res.text());
 }
 
 export async function getDayReport(dateStr, store) {
