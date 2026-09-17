@@ -5,21 +5,26 @@ const toDateStr = (y, m, d) =>
 
 // ─── Sales Reports ─────────────────────────────────────────────────
 
+async function sbFetch(path) {
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  const res = await fetch(`${url}/rest/v1/${path}`, {
+    headers: { apikey: key, Authorization: `Bearer ${key}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 export async function getMonthReports(y, m, store) {
   const start = toDateStr(y, m, 1);
   const lastDay = new Date(y, m, 0).getDate();
   const end = toDateStr(y, m, lastDay);
-  const { data, error } = await supabase
-    .from('sales_reports')
-    .select('*')
-    .eq('store_id', store)
-    .gte('date', start)
-    .lte('date', end);
-  if (error) throw error;
+  const rows = await sbFetch(
+    `sales_reports?select=*&store_id=eq.${store}&date=gte.${start}&date=lte.${end}`
+  );
   const map = {};
-  for (const row of data || []) {
-    map[row.date] = row;
-  }
+  for (const row of rows) map[row.date] = row;
   return map;
 }
 
@@ -103,12 +108,8 @@ export async function updateReadBy(dateStr, store, readBy) {
 }
 
 export async function getDayReport(dateStr, store) {
-  const { data, error } = await supabase
-    .from('sales_reports')
-    .select('date, sales, diary, read_by, closed')
-    .eq('store_id', store)
-    .eq('date', dateStr)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
+  const rows = await sbFetch(
+    `sales_reports?select=date,sales,diary,read_by,closed&store_id=eq.${store}&date=eq.${dateStr}&limit=1`
+  );
+  return rows[0] ?? null;
 }
