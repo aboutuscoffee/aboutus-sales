@@ -8,6 +8,18 @@ const toDateStr = (y, m, d) =>
 
 const WEATHER_LABEL = { sunny:"☀️ 晴れ", cloudy:"⛅ 曇り", rainy:"🌧️ 雨", snowy:"❄️ 雪" };
 
+const SERVICE_NOTES_URL = "https://aboutuscoffee.github.io/aboutus-service-notes/";
+
+function ServiceNotesLink() {
+  return (
+    <a href={SERVICE_NOTES_URL} target="_blank" rel="noopener noreferrer"
+      className="block rounded-xl border border-[#c3d6c8] bg-[#eef4ef] px-3 py-3 mb-3 hover:bg-[#e3ede6] transition">
+      <p className="text-xs text-[#4a6a56]">今日の接客、記録しましたか？</p>
+      <p className="text-sm font-semibold text-[#2f4d3a] mt-0.5">接客ノートを開く ↗</p>
+    </a>
+  );
+}
+
 const NAMES_BY_STORE = {
   nijo:    ["澤野井","金川","芳野","宗清","松田","宮田","宮尾","川端","中尾"],
   fushimi: ["澤野井","金川","宮尾","宮田","川端","中尾","芳野","宗清","松田"],
@@ -101,15 +113,18 @@ export default function DailyViewPage({ navigate, searchParams, store }) {
       {loading ? (
         <div className="text-center text-gray-400 text-sm py-10">読み込み中...</div>
       ) : !rep ? (
-        <div className="bg-white rounded-xl border p-6 text-center text-gray-400 text-sm">
-          この日の日報はまだ入力されていません。
-          <div className="mt-3">
-            <button onClick={() => navigate(`daily?date=${date}`)}
-              className="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm hover:bg-[#162d4a]">
-              日報を入力する
-            </button>
+        <>
+          <div className="bg-white rounded-xl border p-6 text-center text-gray-400 text-sm mb-3">
+            この日の日報はまだ入力されていません。
+            <div className="mt-3">
+              <button onClick={() => navigate(`daily?date=${date}`)}
+                className="bg-[#1e3a5f] text-white rounded-lg px-4 py-2 text-sm hover:bg-[#162d4a]">
+                日報を入力する
+              </button>
+            </div>
           </div>
-        </div>
+          <ServiceNotesLink />
+        </>
       ) : (
         <>
           <div className="grid grid-cols-4 gap-2 mb-3">
@@ -245,6 +260,8 @@ export default function DailyViewPage({ navigate, searchParams, store }) {
               </div>
             )}
           </div>
+
+          <ServiceNotesLink />
 
           <div className="flex gap-2">
             <button onClick={() => navigate("")} className="flex-1 border rounded-xl py-2.5 text-sm hover:bg-gray-50">← ダッシュボードへ戻る</button>
