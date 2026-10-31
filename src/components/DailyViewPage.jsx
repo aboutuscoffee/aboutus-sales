@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getMonthReports, updateReadBy } from "../lib/db.js";
+import { SERVICE_NOTES_URL } from "../lib/links.js";
 
 const DAYS_JA = ["日","月","火","水","木","金","土"];
 const fmt = (n) => (n == null || n === "" ? "" : Number(n).toLocaleString());
@@ -7,8 +8,6 @@ const toDateStr = (y, m, d) =>
   `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
 const WEATHER_LABEL = { sunny:"☀️ 晴れ", cloudy:"⛅ 曇り", rainy:"🌧️ 雨", snowy:"❄️ 雪" };
-
-const SERVICE_NOTES_URL = "https://aboutuscoffee.github.io/aboutus-service-notes/";
 
 function ServiceNotesLink() {
   return (

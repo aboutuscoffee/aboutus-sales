@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { getMonthReports, getProducts, upsertDayReport, getDayReport, updateReadBy } from "../lib/db.js";
 import { TIER_ORDER, buildTieredGroups } from "../lib/productUtils.js";
+import { SERVICE_NOTES_URL } from "../lib/links.js";
 
 const DAYS_JA = ["日","月","火","水","木","金","土"];
 const fmt = (n) => (n == null || n === "" ? "" : Number(n).toLocaleString());
@@ -469,6 +470,10 @@ export default function DailyPage({ navigate, searchParams, store }) {
                 <option value="">選択してください</option>
                 {storeStaff.map(name => <option key={name} value={name}>{name}</option>)}
               </select>
+              <a href={SERVICE_NOTES_URL} target="_blank" rel="noopener noreferrer"
+                className="inline-block mt-1.5 text-xs text-[#2f4d3a] underline underline-offset-2">
+                接客ノートを開く ↗
+              </a>
             </div>
             {[
               {k:"diary",       l:"☀️ 一日の様子", rows:4},
