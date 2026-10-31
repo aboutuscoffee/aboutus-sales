@@ -13,9 +13,8 @@ const SERVICE_NOTES_URL = "https://aboutuscoffee.github.io/aboutus-service-notes
 function ServiceNotesLink() {
   return (
     <a href={SERVICE_NOTES_URL} target="_blank" rel="noopener noreferrer"
-      className="block rounded-xl border border-[#c3d6c8] bg-[#eef4ef] px-3 py-3 mb-3 hover:bg-[#e3ede6] transition">
-      <p className="text-xs text-[#4a6a56]">今日の接客、記録しましたか？</p>
-      <p className="text-sm font-semibold text-[#2f4d3a] mt-0.5">接客ノートを開く ↗</p>
+      className="block text-center text-sm text-[#2f4d3a] underline underline-offset-2 py-2 mb-3">
+      接客ノートを開く ↗
     </a>
   );
 }
