@@ -16,8 +16,8 @@ const WEATHER_OPTIONS = [
 ];
 
 const STAFF_BY_STORE = {
-  nijo:    ["金川","芳野","松田","宗清","宮田"],
-  fushimi: ["金川","宮尾","宮田","川端","中尾"],
+  nijo:    ["金川","芳野","松田","宗清","宮田","有佑"],
+  fushimi: ["金川","宮尾","宮田","川端","中尾","有佑"],
 };
 
 const STAFF_KEYS = {
@@ -29,6 +29,7 @@ const STAFF_KEYS = {
   "宮田": "check_miyata",
   "川端": "check_kawabata",
   "中尾": "check_nakao",
+  "有佑": "check_ariyuu",
 };
 
 export default function DailyPage({ navigate, searchParams, store }) {
